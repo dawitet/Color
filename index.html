@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ቃላት (Kalat) - Amharic Wordle</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <h1>ቃላት</h1>
+    <p>  በ 6 ሙከራዎች ውስጥ ባለ 3፣ 4 ወይም 5 ፊደል ቃላትን ለመገመት ይሞክሩ።</p>
+
+    <div id="length-selection">
+        <button data-length="3">3 ፊደላት</button>
+        <button data-length="4">4 ፊደላት</button>
+        <button data-length="5">5 ፊደላት</button>
+    </div>
+    <div id="bird-container">
+  <img id="bird" src="" alt="Bird">
+  <div id="nest-3" class="nest" data-length="3">
+        <img src="" alt="Nest with 3 eggs">
+        <div class ="bird-caption">3 ፊደላት</div>
+    </div>
+    <div id="nest-4" class="nest" data-length="4">
+        <img src="" alt="Nest with 4 eggs">
+        <div class ="bird-caption">4 ፊደላት</div>
+    </div>
+    <div id="nest-5" class="nest" data-length="5">
+        <img src="" alt="Nest with 5 eggs">
+        <div class ="bird-caption">5 ፊደላት</div>
+    </div>
+</div>
+    <div id="wordle-grid">
+        <!-- Tiles will be dynamically generated here -->
+    </div>
+
+    <div id="keyboard">
+        <!-- Keyboard will be dynamically generated here -->
+    </div>
+<div id="message"></div>
+    <button id="new-game-button" style="display:none">አዲስ ጨዋታ</button>
+    <button id="hint-button">ፍንጭ</button>
+    <button id="rules-button">ህጎች</button>
+    <button id="share-button" style="display:none">አጋራ</button>
+
+    <div id="hint-container" style="display: none;">
+      <p>ፍንጭ!</p>
+    </div>
+
+     <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">×</span>
+            <h1>የጨዋታው ህግጋት</h1>
+            <p>ቃላትን በስድስት ሙከራዎች ለመገመት ሞክር።</p>
+            <ol>
+                <li>እያንዳንዱ ግምት ትክክለኛ ባለ 3፣ 4 ወይም 5 ፊደል ቃል መሆን አለበት።</li>
+                <li>ግምቱን ለማስገባት አስገባ የሚለውን ቁልፍ ይጫኑ።</li>
+                <li>ከእያንዳንዱ ግምት በኋላ የሰድር ቀለሞች ይቀየራሉ፡</li>
+                   <ul>
+                     <li>አረንጓዴ፡ ፊደሉ በቃሉ ውስጥ እና በትክክለኛው ቦታ ላይ ነው።</li>
+                     <li>ቢጫ፡ ፊደሉ በቃሉ ውስጥ አለ ግን በተሳሳተ ቦታ ላይ ነው።</li>
+                     <li>ግራጫ፡ ፊደሉ በቃሉ ውስጥ የለም።</li>
+                     <li>ሐምራዊ፡ ፊደሉ የቃሉ ቤተሰብ ነው፣ ግን በተሳሳተ ፊደል እና ቦታ ላይ ነው።</li>
+                     <li>ሰማያዊ፡ ፊደሉ በቃሉ ውስጥ አለ፣ ግን በተሳሳተ የፊደል ቤተሰብ ውስጥ ነው።</li>
+                    </ul>
+
+                <li>ፍንጭ ለማግኘት፣ የወፍ ምልክቱን ጠቅ ያድርጉ።</li>
+                <li>መልካም እድል!</li>
+            </ol>
+        </div>
+    </div>
+<p>የዳዊት ስራ</p>
+
+ <script src="script.js"></script>
+    <script>
+        function setThemeClass() {
+            document.documentElement.className = Telegram.WebApp.colorScheme;
+        }
+
+        Telegram.WebApp.onEvent('themeChanged', setThemeClass);
+        setThemeClass();
+        Telegram.WebApp.expand();
+    </script>
+
+</body>
+</html>

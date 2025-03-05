@@ -1,0 +1,275 @@
+/* --- Global Styles --- */
+body {
+    font-family: sans-serif; /* Use a generic sans-serif for now */
+    text-align: center;
+    background-color: #f0f0f0; /* Light gray background */
+    color: #333; /* Dark gray text */
+    margin: 0;
+    padding: 0;
+}
+
+/* --- Game Title --- */
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
+}
+
+/* --- Instructions Paragraph --- */
+p {
+    margin-bottom: 1em;
+}
+
+/* --- Wordle Grid --- */
+#wordle-grid {
+    display: grid;
+    /* grid-template-columns: repeat(5, 60px);  This is now set dynamically in JS */
+    grid-gap: 5px;
+    margin: 20px auto;
+    max-width: 400px; /* Limit the width for better layout */
+}
+
+.tile {
+    width: 60px; /* Adjust as needed */
+    height: 60px; /* Adjust as needed */
+    border: 2px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em; /* Larger font size for letters */
+    font-weight: bold;
+    text-transform: uppercase; /* Ensure consistent case */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+/* --- Tile States --- */
+.tile.filled {
+    background-color: #eee;
+}
+
+.tile.correct {
+    background-color: green;
+    color: white;
+    border-color: green;
+}
+
+.tile.present {
+    background-color: yellow;
+    color: black;
+    border-color: yellow;
+}
+
+.tile.absent {
+    background-color: gray;
+    color: white;
+    border-color: gray;
+}
+.tile.family {
+    background-color: purple;
+    color: white;
+    border-color: purple;
+}
+.tile.blue {
+    background-color: blue;
+    color: white;
+    border-color: blue;
+}
+
+/* --- Keyboard --- */
+#keyboard {
+    margin-top: 20px;
+}
+
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px; /* Space between rows */
+}
+
+.key {
+    padding: 10px 15px;
+    margin: 2px; /* Space between keys */
+    border: 1px solid #ccc;
+    background-color: #eee;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px; /* Rounded corners */
+    user-select: none; /* Prevent text selection */
+}
+
+.key:hover {
+    background-color: #ddd; /* Slightly darker on hover */
+}
+.key:disabled {
+    opacity: 0.5; /* Visually indicate disabled keys */
+    cursor: not-allowed; /* Change cursor on disabled keys */
+}
+/* --- Suggestion Area --- */
+#suggestion-area {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+#suggestion-area .key {
+    /* Use the same .key styles for suggestion buttons */
+    margin: 2px; /* Add some margin */
+
+}
+
+/* --- Messages --- */
+#message {
+    margin-top: 10px;
+    font-weight: bold;
+}
+/* --- Buttons --- */
+
+#length-selection {
+  display:flex;
+  justify-content: center;
+  align-items: center;
+
+}
+#length-selection button{
+   margin: 5px;
+}
+
+#new-game-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+/* --- Bird Animation (Placeholder Images - REPLACE THESE) --- */
+
+#bird-container {
+    position: relative; /* Needed for absolute positioning within */
+    height: 100px; /* Adjust as needed based on your bird image size */
+    margin-bottom: 20px; /* Space between bird and grid */
+}
+
+#bird-container #bird {
+    /* Default (static) bird image */
+    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAjklEQVR4Ae3dwQmDQBBA0T+lE8Zc+AF6gC8kTyJ6gE5hL7CI9Y8HTDqEQP03gQAAAAAAGBrDeWwT1tJREz2U9rDHLAF5iS+EA74I9kL8/h1BfF/q9m7sZJ5Hdg5c1n3bKF4AgAAAACkG9b2PXDn9P6F7h54WdK4APMAAAAASUVORK5CYII=');
+    width: 50px; /* Adjust size as needed */
+    height: 50px; /* Adjust size as needed */
+      position: absolute; /* Position absolutely within the container */
+    left: 0;
+    top: 0;
+    transition: transform 0.5s ease; /* Smooth transition for movement */
+
+}
+
+/* Placeholder for flying bird (you can use a GIF or a sequence of images) */
+.fly-in #bird,
+.fly-out #bird,
+.fly-to-tile #bird {
+     content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAjklEQVR4Ae3dwQmDQBBA0T+lE8Zc+AF6gC8kTyJ6gE5hL7CI9Y8HTDqEQP03gQAAAAAAGBrDeWwT1tJREz2U9rDHLAF5iS+EA74I9kL8/h1BfF/q9m7sZJ5Hdg5c1n3bKF4AgAAAACkG9b2PXDn9P6F7h54WdK4APMAAAAASUVORK5CYII=');
+}
+/* Placeholder Nest Images */
+#nest-3 img {
+    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAEklEQVR4AewaftIAAABlSURBVO3BAQEAAACAkP6v7ggKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgBw4AAZTSZ/UAAAAASUVORK5CYII='); /* Very simple placeholder */
+    width: 40px;
+    height: 30px;
+}
+
+#nest-4 img {
+    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAEklEQVR4AewaftIAAABlSURBVO3BAQEAAACAkP6v7ggKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgBw4AAZTSZ/UAAAAASUVORK5CYII='); /* Very simple placeholder */
+    width: 40px;
+     height: 30px;
+
+}
+
+#nest-5 img {
+    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAEklEQVR4AewaftIAAABlSURBVO3BAQEAAACAkP6v7ggKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgBw4AAZTSZ/UAAAAASUVORK5CYII='); /* Very simple placeholder */
+     width: 40px;
+    height: 30px;
+}
+
+.bird-caption{
+  text-align:center;
+}
+
+/* Initially hide the nests */
+.nest {
+    display: none; /* Initially hidden */
+    position: absolute; /* Position relative to the bird container */
+}
+/* Show nests on game start/reset */
+#length-selection:not([style*="display: none"]) + #bird-container .nest{
+  display: inline-block;
+  position: static;
+}
+
+/* Basic fly-away animation */
+.fly-away {
+    transform: translateY(-100px) scale(0); /* Move up and shrink */
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+/* --- Modal Styles (for rules) --- */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px; /* Limit width on larger screens */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+}
+
+/* Styles for the rules content */
+.modal-content h1 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.modal-content ol {
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.modal-content ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.modal-content li {
+    margin-bottom: 5px;
+}
+.hidden{
+  display:none;
+}
