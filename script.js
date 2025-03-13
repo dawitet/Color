@@ -527,6 +527,16 @@ function submitGuess() {
 
     if (!gameState.words[gameState.selectedWordLength].includes(guessWord)) {
         Telegram.WebApp.showAlert("ያልታወቀ ቃል!");
+
+    if (guessWord === gameState.targetWord || gameState.currentRow === gameState.MAX_GUESSES) {
+        animateTiles(); // Animate tiles before win/loss logic
+    } else {
+        checkGuess();
+        gameState.currentRow++;
+        gameState.currentGuess = [];
+        updateGrid();
+        updateKeyboard();
+    }
         return;
     }
 
@@ -565,6 +575,52 @@ function disableKeyboard() {
 function showGameOverButtons() {
     hideElement(hintButton); hideElement(newGameButton);
     showElement(gameOverButton); showElement(document.getElementById("game-over-buttons"));
+}
+
+function animateTiles() {
+    for (let i = 0; i < gameState.selectedWordLength; i++) {
+        const tile = document.getElementById(`tile-${gameState.currentRow}-${i}`);
+        if (tile) {
+            tile.classList.add("flip");
+            tile.addEventListener("animationend", () => {
+                tile.classList.remove("flip");
+                if (i === gameState.selectedWordLength -1) {
+                    checkGuess();
+                    if(gameState.currentRow === gameState.MAX_GUESSES) {
+                        document.getElementById("game-over-buttons").classList.add("animate");
+                    }
+                }
+            }, { once: true });
+        }
+    }
+}
+
+function handleKeyPress(key) {
+    playSound(keyPressSound);
+    if (key === "Backspace" || key === "ሰርዝ") {
+        // ... existing code ...
+    } else if (key === "ENTER" || key === "Enter" || key === "ገምት") {
+        // ... existing code ...
+    } else {
+        displayLetterFamily(key);
+        const keyButton = document.querySelector(`.key[data-letter="${key}"]`);
+        if (keyButton) {
+            keyButton.classList.add("pressed");
+            keyButton.addEventListener("animationend", () => {
+                keyButton.classList.remove("pressed");
+            }, { once: true });
+        }
+    }
+}
+
+function showGameOverButtons() {
+    hideElement(hintButton);
+    hideElement(newGameButton);
+    showElement(gameOverButton);
+    showElement(document.getElementById("game-over-buttons"));
+    if (gameState.currentRow === gameState.MAX_GUESSES) {
+        document.getElementById("game-over-buttons").classList.add("animate");
+    }
 }
 
 function checkGuess() {
