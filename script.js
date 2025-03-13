@@ -1,18 +1,18 @@
- // --- Constants and Variables ---
-
-const WORD_LENGTHS = [3, 4, 5];
-let selectedWordLength = null;
-let targetWord = "";
-let currentGuess = [];
-let guessCount = 0;
-const MAX_GUESSES = 6;
-let words = {};
-let hints = null; // Hints are initially null, loaded on demand
-let guesses = [];
-let letterHints = {};
-let currentRow = 0;
-const ENTER_KEY = "Enter";
-let hintFileLoaded = false; // Track hint file loading state
+// --- Game State ---
+let gameState = {
+    selectedWordLength: null,
+    targetWord: "",
+    currentGuess: [],
+    guessCount: 0,
+    MAX_GUESSES: 6,
+    words: {},
+    hints: null,
+    guesses: [],
+    letterHints: {},
+    currentRow: 0,
+    hintFileLoaded: false,
+    isLoading: true, // Added loading state
+};
 
 // --- DOM Element References ---
 let keyboard, grid, messageDisplay, lengthSelection, newGameButton, hintButton,
@@ -40,30 +40,29 @@ const config = {
 };
 
 // --- Helper Functions ---
-
 function showElement(element) { if (element) element.style.display = "block"; }
 function hideElement(element) { if (element) element.style.display = "none"; }
 function setElementText(element, text) { if (element) element.textContent = text; }
 
 // --- Loading Screen Functions ---
-
 function showLoadingScreen() { document.getElementById("loading-screen").style.display = "flex"; }
 function hideLoadingScreen() { document.getElementById("loading-screen").style.display = "none"; }
 
 // --- Game Setup Functions ---
-
 async function loadWords() {
     showLoadingScreen();
     try {
-        const wordListPromises = WORD_LENGTHS.map(async (length) => {
+        const wordListPromises = Object.keys(config.wordListPaths).map(async (length) => {
             const response = await fetch(config.wordListPaths[length]);
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            words[length] = (await response.text()).trim().split("\n").map(word => word.trim());
+            gameState.words[length] = (await response.text()).trim().split("\n").map(word => word.trim());
         });
-        await Promise.all(wordListPromises); // Only load word lists initially
+        await Promise.all(wordListPromises);
+        gameState.isLoading = false; // Set loading to false after loading
     } catch (error) {
         console.error("Error loading resources:", error);
         setElementText(messageDisplay, "የቃላት ዝርዝርን በመጫን ላይ ስህተት ተፈጥሯል።");
+        gameState.isLoading = false; // Set loading to false on error
         hideLoadingScreen();
         return false;
     }
@@ -71,39 +70,36 @@ async function loadWords() {
 }
 
 function startNewGame() {
-    if (!selectedWordLength) {
+    if (!gameState.selectedWordLength) {
         setElementText(messageDisplay, "እባክዎ የቃል ርዝመት ይምረጡ");
         showLengthSelection();
         return;
     }
-    if (!words[selectedWordLength] || words[selectedWordLength].length === 0) {
-        console.error(`No words of length ${selectedWordLength} found.`);
-        setElementText(messageDisplay, `${selectedWordLength} ፊደል ያላቸው ቃላት የሉም።`);
+    if (!gameState.words[gameState.selectedWordLength] || gameState.words[gameState.selectedWordLength].length === 0) {
+        console.error(`No words of length ${gameState.selectedWordLength} found.`);
+        setElementText(messageDisplay, `${gameState.selectedWordLength} ፊደል ያላቸው ቃላት የሉም።`);
         showLengthSelection();
         return;
     }
 
     // Load or initialize game state
     if (!loadGameState()) { // Try to load, and if it fails, *then* initialize
-        targetWord = getRandomWord(selectedWordLength);
-        // Normalize the target word *immediately* after getting it.
-        targetWord = normalizeWord(targetWord); // *** IMPORTANT ***
-
-        if (!targetWord) {
+        gameState.targetWord = getRandomWord(gameState.selectedWordLength);
+        gameState.targetWord = normalizeWord(gameState.targetWord);
+        if (!gameState.targetWord) {
             setElementText(messageDisplay, "ቃል በመምረጥ ላይ ስህተት ተፈጥሯል።");
             showLengthSelection();
             return;
         }
-        currentGuess = [];
-        guessCount = 0;
-        guesses = [];       // Reset guesses on new game
-        letterHints = {};
-        currentRow = 0;
+        gameState.currentGuess = [];
+        gameState.guessCount = 0;
+        gameState.guesses = [];
+        gameState.letterHints = {};
+        gameState.currentRow = 0;
     }
 
-
     clearGrid();
-    createGrid(); // Create grid structure first
+    createGrid();
     resetKeyboard();
     hideElement(lengthSelection);
     showElement(keyboard);
@@ -113,22 +109,21 @@ function startNewGame() {
     setElementText(messageDisplay, "");
     showElement(titleElement);
     hideElement(createdByElement);
-    calculateAndSetTileSize(); // Calculate tile size after layout is rendered
-    updateGrid();       // Update grid AFTER loading game state
-    updateKeyboard();   // Update keyboard AFTER loading
-    saveGameState();  // Save after loading or initializing
+    calculateAndSetTileSize();
+    updateGrid();
+    updateKeyboard();
+    saveGameState();
 }
 
-// Reset (clear) the game state.  Called when returning to the main menu.
 function resetGame() {
-    selectedWordLength = null;
-    targetWord = "";  // Clear target word
-    currentGuess = [];
-    guessCount = 0;
-    guesses = [];     // Clear guesses
-    letterHints = {};
-    currentRow = 0;
-    hintFileLoaded = false; // Reset hint file loading state
+    gameState.selectedWordLength = null;
+    gameState.targetWord = "";
+    gameState.currentGuess = [];
+    gameState.guessCount = 0;
+    gameState.guesses = [];
+    gameState.letterHints = {};
+    gameState.currentRow = 0;
+    gameState.hintFileLoaded = false;
 
     clearGrid();
     resetKeyboard();
@@ -138,19 +133,19 @@ function resetGame() {
     hideElement(document.getElementById("game-container"));
     hideElement(gameOverButton);
     showLengthSelection();
-    localStorage.removeItem("gameState");  // Clear on reset
+    localStorage.removeItem("gameState");
 }
-//Gets random word
+
 function getRandomWord(length) {
-    if (!words[length]) { console.error(`No words of length ${length} found.`); return null; }
-    return words[length][Math.floor(Math.random() * words[length].length)];
+    if (!gameState.words[length]) { console.error(`No words of length ${length} found.`); return null; }
+    return gameState.words[length][Math.floor(Math.random() * gameState.words[length].length)];
 }
 
 function createGrid() {
     grid.innerHTML = "";
-    grid.style.gridTemplateColumns = `repeat(${selectedWordLength}, 1fr)`;
-    for (let i = 0; i < MAX_GUESSES; i++) {
-        for (let j = 0; j < selectedWordLength; j++) {
+    grid.style.gridTemplateColumns = `repeat(${gameState.selectedWordLength}, 1fr)`;
+    for (let i = 0; i < gameState.MAX_GUESSES; i++) {
+        for (let j = 0; j < gameState.selectedWordLength; j++) {
             const tile = document.createElement("div");
             tile.classList.add("tile");
             tile.id = `tile-${i}-${j}`;
@@ -164,29 +159,27 @@ function clearGrid() { grid.innerHTML = ""; }
 function setupLengthSelection() {
     lengthSelection.addEventListener("click", (event) => {
         if (event.target.classList.contains("length-button")) {
-            selectedWordLength = parseInt(event.target.dataset.length);
+            gameState.selectedWordLength = parseInt(event.target.dataset.length);
             const today = new Date().toLocaleDateString();
 
-            // Check if the game has been *completed* today, not just played.
-            if (localStorage.getItem(`${selectedWordLength}-letter-completed-${today}`) === "true") {
-                messageDisplay.textContent = `የ ${selectedWordLength} ፊደል ቃላት ጨዋታ ዛሬ ተጫውተው ጨርሰዋል።`;
-                 return; // Prevent starting
+            if (localStorage.getItem(`${gameState.selectedWordLength}-letter-completed-${today}`) === "true") {
+                messageDisplay.textContent = `የ ${gameState.selectedWordLength} ፊደል ቃላት ጨዋታ ዛሬ ተጫውተው ጨርሰዋል።`;
+                return;
             }
 
-
-            if (!words[selectedWordLength] || words[selectedWordLength].length === 0) {
-                console.error(`No words of length ${selectedWordLength} found.`);
+            if (!gameState.words[gameState.selectedWordLength] || gameState.words[gameState.selectedWordLength].length === 0) {
+                console.error(`No words of length ${gameState.selectedWordLength} found.`);
                 setElementText(messageDisplay, "የቃላት ዝርዝር አልተጫነም ወይም ባዶ ነው።");
                 return;
             }
-            startNewGame(); // Always attempt to start
+            startNewGame();
         }
     });
 }
 
 function showLengthSelection() {
     const today = new Date().toLocaleDateString();
-    hideElement(keyboard); // Hide keyboard when showing length selection
+    hideElement(keyboard);
     hideElement(document.getElementById("game-container"));
     showElement(lengthSelection);
 }
@@ -194,44 +187,39 @@ function showLengthSelection() {
 // --- Amharic Keyboard ---
 const keys = [
     ["ሀ", "ለ", "መ", "ሰ", "ረ", "ሸ", "ቀ", "በ"],
-    ["ተ", "ቸ", "ነ", "ኘ", "አ", "ከ", "ኸ", "ወ"], // Added "ኸ" here
+    ["ተ", "ቸ", "ነ", "ኘ", "አ", "ከ", "ኸ", "ወ"],
     ["ዘ", "ዠ", "የ", "ደ", "ጀ", "ገ", "ጠ", "ፀ", "ጰ"],
-    ["ሰርዝ", "ጨ", "ፈ", "ቨ", "ፐ", "ገምት"] //"ቨ",
+    ["ሰርዝ", "ጨ", "ፈ", "ቨ", "ፐ", "ገምት"]
 ];
 
-
 function createAmharicKeyboard() {
-    keyboard.innerHTML = ""; // Clear existing keyboard
-
-    // Create character rows
+    keyboard.innerHTML = "";
     keys.forEach(rowKeys => {
         const rowDiv = document.createElement("div");
         rowDiv.classList.add("keyboard-row");
         rowKeys.forEach(keyChar => {
-          if (keyChar !== "ሰርዝ" && keyChar !== "ገምት"){ // Regular letter keys
-            const keyButton = document.createElement("button");
-            keyButton.textContent = keyChar;
-            keyButton.classList.add("key");
-            keyButton.dataset.letter = keyChar;  // Keep for letter input
-            keyButton.dataset.key = keyChar; // Add data-key.  Good practice!
-            keyButton.addEventListener("click", () => {
-              if (!keyButton.disabled) { // Important check
-                handleKeyPress(keyChar);
-                  keyButton.classList.add("active"); // Add active class on press
-                setTimeout(() => keyButton.classList.remove("active"), 100); // Remove after short delay
-              }
-            });
-            rowDiv.appendChild(keyButton);
-          }
+            if (keyChar !== "ሰርዝ" && keyChar !== "ገምት") {
+                const keyButton = document.createElement("button");
+                keyButton.textContent = keyChar;
+                keyButton.classList.add("key");
+                keyButton.dataset.letter = keyChar;
+                keyButton.dataset.key = keyChar;
+                keyButton.addEventListener("click", () => {
+                    if (!keyButton.disabled) {
+                        handleKeyPress(keyChar);
+                        keyButton.classList.add("active");
+                        setTimeout(() => keyButton.classList.remove("active"), 100);
+                    }
+                });
+                rowDiv.appendChild(keyButton);
+            }
         });
         keyboard.appendChild(rowDiv);
     });
 
-    // Add Delete and Guess Buttons in the LAST row
-      const lastRow = document.createElement("div");
+    const lastRow = document.createElement("div");
     lastRow.classList.add("keyboard-row");
 
-    // Combined Delete and Guess Button
     const combinedButton = document.createElement("div");
     combinedButton.classList.add("combined-button");
 
@@ -240,8 +228,8 @@ function createAmharicKeyboard() {
     deleteButton.dataset.key = "Backspace";
     deleteButton.addEventListener("click", () => {
         handleKeyPress("Backspace");
-        deleteButton.classList.add("active"); // Add active class on press
-        setTimeout(() => deleteButton.classList.remove("active"), 100); // Remove after short delay
+        deleteButton.classList.add("active");
+        setTimeout(() => deleteButton.classList.remove("active"), 100);
     });
     combinedButton.appendChild(deleteButton);
 
@@ -250,8 +238,8 @@ function createAmharicKeyboard() {
     guessButton.dataset.key = "Enter";
     guessButton.addEventListener("click", () => {
         handleKeyPress(ENTER_KEY);
-        guessButton.classList.add("active"); // Add active class on press
-        setTimeout(() => guessButton.classList.remove("active"), 100); // Remove after short delay
+        guessButton.classList.add("active");
+        setTimeout(() => guessButton.classList.remove("active"), 100);
     });
     combinedButton.appendChild(guessButton);
 
@@ -259,78 +247,70 @@ function createAmharicKeyboard() {
     keyboard.appendChild(lastRow);
 }
 
-// --- Keyboard and Suggestion Handling ---
-
 function displayLetterFamily(letter) {
-    suggestionArea.innerHTML = ""; // Clear previous suggestions
+    suggestionArea.innerHTML = "";
     const family = getLetterFamily(letter);
 
-    if (family) { // Check if family exists
+    if (family) {
         family.forEach(char => {
             const suggestionButton = document.createElement("button");
             suggestionButton.textContent = char;
-            suggestionButton.classList.add("key"); // Use existing key styles
-            suggestionButton.dataset.letter = char; // Store the character
+            suggestionButton.classList.add("key");
+            suggestionButton.dataset.letter = char;
             suggestionButton.addEventListener("click", () => {
                 addLetterToGuess(char);
-                suggestionButton.classList.add("active"); // Add active class on press
-                setTimeout(() => suggestionButton.classList.remove("active"), 100); // Remove after short delay
-                // Don't clear suggestion area here
+                suggestionButton.classList.add("active");
+                setTimeout(() => suggestionButton.classList.remove("active"), 100);
             });
             suggestionArea.appendChild(suggestionButton);
         });
-    } else {
-        // IMPORTANT: If no family is found (e.g., for special keys),
-        // we should NOT clear the suggestion area.  It should remain empty.
-        // So, we do NOTHING here.  The placeholder will show.
     }
 }
 
 function resetKeyboard() {
     keyboard.querySelectorAll(".key").forEach(button => {
-        button.classList.remove("correct", "present", "absent", "family", "blue", "active"); // Added "active"
+        button.classList.remove("correct", "present", "absent", "family", "blue", "active");
         button.disabled = false;
     });
 }
-//Gets letter family
+
 function getLetterFamily(letter) {
-//The families of the letters to be displayed on the suggestion area
     const families = [
-      ["ሀ", "ሁ", "ሂ", "ሃ", "ሄ", "ህ", "ሆ"],
-      ["ለ", "ሉ", "ሊ", "ላ", "ሌ", "ል", "ሎ", "ሏ"],
-      ["መ", "ሙ", "ሚ", "ማ", "ሜ", "ም", "ሞ", "ሟ"],
-      ["ረ", "ሩ", "ሪ", "ራ", "ሬ", "ር", "ሮ", "ሯ"],
-      ["ሰ", "ሱ", "ሲ", "ሳ", "ሴ", "ስ", "ሶ", "ሷ"],
-      ["ሸ", "ሹ", "ሺ", "ሻ", "ሼ", "ሽ", "ሾ", "ሿ"],
-      ["ቀ", "ቁ", "ቂ", "ቃ", "ቄ", "ቅ", "ቆ", "ቋ"],
-      ["በ", "ቡ", "ቢ", "ባ", "ቤ", "ብ", "ቦ", "ቧ"],
-      ["ተ", "ቱ", "ቲ", "ታ", "ቴ", "ት", "ቶ", "ቷ"],
-      ["ቸ", "ቹ", "ቺ", "ቻ", "ቼ", "ች", "ቾ", "ቿ"],
-      ["ነ", "ኑ", "ኒ", "ና", "ኔ", "ን", "ኖ", "ኗ"],
-      ["ኘ", "ኙ", "ኚ", "ኛ", "ኜ", "ኝ", "ኞ", "ኟ"],
-      ["አ", "ኡ", "ኢ", "ኣ", "ኤ", "እ", "ኦ", "ኧ"],
-      ["ከ", "ኩ", "ኪ", "ካ", "ኬ", "ክ", "ኮ", "ኳ"],
-      ["ወ", "ዉ", "ዊ", "ዋ", "ዌ", "ው", "ዎ"],
-      ["ዘ", "ዙ", "ዚ", "ዛ", "ዜ", "ዝ", "ዞ", "ዟ"],
-      ["ዠ", "ዡ", "ዢ", "ዣ", "ዤ", "ዥ", "ዦ", "ዧ"],
-      ["የ", "ዩ", "ዪ", "ያ", "ዬ", "ይ", "ዮ"],
-      ["ደ", "ዱ", "ዲ", "ዳ", "ዴ", "ድ", "ዶ", "ዷ"],
-      ["ጀ", "ጁ", "ጂ", "ጃ", "ጄ", "ጅ", "ጆ", "ጇ"],
-      ["ገ", "ጉ", "ጊ", "ጋ", "ጌ", "ግ", "ጎ", "ጓ"],
-      ["ጠ", "ጡ", "ጢ", "ጣ", "ጤ", "ጥ", "ጦ", "ጧ"],
-      ["ጨ", "ጩ", "ጪ", "ጫ", "ጬ", "ጭ", "ጮ", "ጯ"],
-      ["ፈ", "ፉ", "ፊ", "ፋ", "ፌ", "ፍ", "ፎ", "ፏ"],
-      ["ፐ", "ፑ", "ፒ", "ፓ", "ፔ", "ፕ", "ፖ", "ፗ"],
-      ["ኸ", "ኹ", "ኺ", "ኻ", "ኼ", "ኽ", "ኾ", "ዃ" ], // Added "ኸ" family
-      ["ጰ", "ጱ", "ጲ", "ጳ", "ጴ", "ጵ", "ጶ", "ጷ"],
-      ["ፀ", "ፁ", "ፂ", "ፃ", "ፄ", "ፅ", "ፆ"],
-      ["ቨ", "ቩ", "ቪ", "ቫ", "ቬ", "ቭ", "ቮ", "ቯ" ]
+        ["ሀ", "ሁ", "ሂ", "ሃ", "ሄ", "ህ", "ሆ"],
+        ["ለ", "ሉ", "ሊ", "ላ", "ሌ", "ል", "ሎ", "ሏ"],
+        ["መ", "ሙ", "ሚ", "ማ", "ሜ", "ም", "ሞ", "ሟ"],
+        ["ረ", "ሩ", "ሪ", "ራ", "ሬ", "ር", "ሮ", "ሯ"],
+        ["ሰ", "ሱ", "ሲ", "ሳ", "ሴ", "ስ", "ሶ", "ሷ"],
+        ["ሸ", "ሹ", "ሺ", "ሻ", "ሼ", "ሽ", "ሾ", "ሿ"],
+        ["ቀ", "ቁ", "ቂ", "ቃ", "ቄ", "ቅ", "ቆ", "ቋ"],
+        ["በ", "ቡ", "ቢ", "ባ", "ቤ", "ብ", "ቦ", "ቧ"],
+        ["ተ", "ቱ", "ቲ", "ታ", "ቴ", "ት", "ቶ", "ቷ"],
+        ["ቸ", "ቹ", "ቺ", "ቻ", "ቼ", "ች", "ቾ", "ቿ"],
+        ["ነ", "ኑ", "ኒ", "ና", "ኔ", "ን", "ኖ", "ኗ"],
+        ["ኘ", "ኙ", "ኚ", "ኛ", "ኜ", "ኝ", "ኞ", "ኟ"],
+        ["አ", "ኡ", "ኢ", "ኣ", "ኤ", "እ", "ኦ", "ኧ"],
+        ["ከ", "ኩ", "ኪ", "ካ", "ኬ", "ክ", "ኮ", "ኳ"],
+        ["ወ", "ዉ", "ዊ", "ዋ", "ዌ", "ው", "ዎ"],
+        ["ዘ", "ዙ", "ዚ", "ዛ", "ዜ", "ዝ", "ዞ", "ዟ"],
+        ["ዠ", "ዡ", "ዢ", "ዣ", "ዤ", "ዥ", "ዦ", "ዧ"],
+        ["የ", "ዩ", "ዪ", "ያ", "ዬ", "ይ", "ዮ"],
+        ["ደ", "ዱ", "ዲ", "ዳ", "ዴ", "ድ", "ዶ", "ዷ"],
+        ["ጀ", "ጁ", "ጂ", "ጃ", "ጄ", "ጅ", "ጆ", "ጇ"],
+        ["ገ", "ጉ", "ጊ", "ጋ", "ጌ", "ግ", "ጎ", "ጓ"],
+        ["ጠ", "ጡ", "ጢ", "ጣ", "ጤ", "ጥ", "ጦ", "ጧ"],
+        ["ጨ", "ጩ", "ጪ", "ጫ", "ጬ", "ጭ", "ጮ", "ጯ"],
+        ["ፈ", "ፉ", "ፊ", "ፋ", "ፌ", "ፍ", "ፎ", "ፏ"],
+        ["ፐ", "ፑ", "ፒ", "ፓ", "ፔ", "ፕ", "ፖ", "ፗ"],
+        ["ኸ", "ኹ", "ኺ", "ኻ", "ኼ", "ኽ", "ኾ", "ዃ"],
+        ["ጰ", "ጱ", "ጲ", "ጳ", "ጴ", "ጵ", "ጶ", "ጷ"],
+        ["ፀ", "ፁ", "ፂ", "ፃ", "ፄ", "ፅ", "ፆ"],
+        ["ቨ", "ቩ", "ቪ", "ቫ", "ቬ", "ቭ", "ቮ", "ቯ"]
     ];
 
     for (const family of families) {
         if (family.includes(letter)) return family;
     }
-    return null; // Return null if not found
+    return null;
 }
 
 function getBaseLetter(letter) {
@@ -360,7 +340,7 @@ function getBaseLetter(letter) {
         "ጨ": "ጨ", "ጩ": "ጩ", "ጪ": "ጪ", "ጫ": "ጫ", "ጬ": "ጬ", "ጭ": "ጭ", "ጮ": "ጮ", "ጯ": "ጯ",
         "ፈ": "ፈ", "ፉ": "ፉ", "ፊ": "ፊ", "ፋ": "ፋ", "ፌ": "ፌ", "ፍ": "ፍ", "ፎ": "ፎ", "ፏ": "ፏ",
         "ፐ": "ፐ", "ፑ": "ፑ", "ፒ": "ፒ", "ፓ": "ፓ", "ፔ": "ፔ", "ፕ": "ፕ", "ፖ": "ፖ", "ፗ": "ፗ",
-        "ኸ": "ኸ", "ኹ": "ኹ", "ኺ": "ኺ", "ኻ": "ኻ", "ኼ": "ኼ", "ኽ": "ኽ", "ኾ": "ኾ", "ዃ": "ዃ", // Added "ኸ" family
+        "ኸ": "ኸ", "ኹ": "ኹ", "ኺ": "ኺ", "ኻ": "ኻ", "ኼ": "ኼ", "ኽ": "ኽ", "ኾ": "ኾ", "ዃ": "ዃ",
         // Redundant letters mapping to base letters - KEEP THESE for normalization
         "ሰ": "ሰ",
         "ሠ": "ሰ",
@@ -371,104 +351,106 @@ function getBaseLetter(letter) {
         "ኀ": "ሀ",
         "ሐ": "ሀ",
         "ሀ": "ሀ",
-          "ጸ": "ፀ",
-          "ፀ": "ፀ",
-          "ጹ": "ፁ",
-          "ጺ": "ፂ",
-          "ፃ": "ፃ",
-          "ጼ": "ፄ",
-          "ጽ": "ፅ",
-          "ጾ": "ፆ",
-          "ሠ": "ሰ",
-          "ሡ": "ሱ",
-          "ሢ": "ሲ",
-          "ሣ": "ሳ",
-          "ሤ": "ሴ",
-          "ሥ": "ስ",
-          "ሦ": "ሶ",
-          "ሧ": "ሷ",
-          "ዐ": "አ",
-          "ዑ": "ኡ",
-          "ዒ": "ኢ",
-          "ዓ": "ኣ",
-          "ዔ": "ኤ",
-          "ዕ": "እ",
-          "ዖ": "ኦ",
-          "ሐ": "ሀ",
-          "ሑ": "ሁ",
-          "ሒ": "ሂ",
-          "ሓ": "ሃ",
-          "ሔ": "ሄ",
-          "ሕ": "ህ",
-          "ሖ": "ሆ",
-          "ሗ": "ዃ",
-          "ቨ": "ቨ",
-          "ቩ": "ቩ",
-          "ቪ": "ቪ",
-          "ቫ": "ቫ",
-          "ቬ": "ቬ",
-          "ቭ": "ቭ",
-          "ቮ": "ቮ",
-          "ቯ": "ቯ",
-          "ጰ": "ጰ",
-          "ጱ": "ጱ",
-          "ጲ": "ጲ",
-          "ጳ": "ጳ",
-          "ጴ": "ጴ",
-          "ጵ": "ጵ",
-          "ጶ": "ጶ",
-          "ጷ": "ጷ",
-
-
+        "ጸ": "ፀ",
+        "ፀ": "ፀ",
+        "ጹ": "ፁ",
+        "ጺ": "ፂ",
+        "ፃ": "ፃ",
+        "ጼ": "ፄ",
+        "ጽ": "ፅ",
+        "ጾ": "ፆ",
+        "ሠ": "ሰ",
+        "ሡ": "ሱ",
+        "ሢ": "ሲ",
+        "ሣ": "ሳ",
+        "ሤ": "ሴ",
+        "ሥ": "ስ",
+        "ሦ": "ሶ",
+        "ሧ": "ሷ",
+        "ዐ": "አ",
+        "ዑ": "ኡ",
+        "ዒ": "ኢ",
+        "ዓ": "ኣ",
+        "ዔ": "ኤ",
+        "ዕ": "እ",
+        "ዖ": "ኦ",
+        "ሐ": "ሀ",
+        "ሑ": "ሁ",
+        "ሒ": "ሂ",
+        "ሓ": "ሃ",
+        "ሔ": "ሄ",
+        "ሕ": "ህ",
+        "ሖ": "ሆ",
+        "ሗ": "ዃ",
+        "ቨ": "ቨ",
+        "ቩ": "ቩ",
+        "ቪ": "ቪ",
+        "ቫ": "ቫ",
+        "ቬ": "ቬ",
+        "ቭ": "ቭ",
+        "ቮ": "ቮ",
+        "ቯ": "ቯ",
+        "ጰ": "ጰ",
+        "ጱ": "ጱ",
+        "ጲ": "ጲ",
+        "ጳ": "ጳ",
+        "ጴ": "ጴ",
+        "ጵ": "ጵ",
+        "ጶ": "ጶ",
+        "ጷ": "ጷ",
+        "ኸ": "ኸ",
+        "ኹ": "ኹ",
+        "ኺ": "ኺ",
+        "ኻ": "ኻ",
+        "ኼ": "ኼ",
+        "ኽ": "ኽ",
+        "ኾ": "ኾ",
+        "ዃ": "ዃ",
     };
     return letterMap[letter] || letter;
 }
 
-// Add Letter to Guess - No Changes Needed
 function addLetterToGuess(letter) {
-    if (currentGuess.length < selectedWordLength) {
-        currentGuess.push(letter);
+    if (gameState.currentGuess.length < gameState.selectedWordLength) {
+        gameState.currentGuess.push(letter);
         updateGrid();
     }
 }
-//Update the Grid
+
 function updateGrid() {
-    for (let i = 0; i < MAX_GUESSES; i++) {
-        for (let j = 0; j < selectedWordLength; j++) {
+    for (let i = 0; i < gameState.MAX_GUESSES; i++) {
+        for (let j = 0; j < gameState.selectedWordLength; j++) {
             const tile = document.getElementById(`tile-${i}-${j}`);
             if (!tile) continue;
-            tile.textContent = (i < guesses.length) ? (guesses[i][j] || "") : (i === currentRow && j < currentGuess.length) ? currentGuess[j] : "";
-            tile.className = "tile"; // Reset classes
-            if (i < guesses.length && guesses[i][j]) {
+            tile.textContent = (i < gameState.guesses.length) ? (gameState.guesses[i][j] || "") : (i === gameState.currentRow && j < gameState.currentGuess.length) ? gameState.currentGuess[j] : "";
+            tile.className = "tile";
+            if (i < gameState.guesses.length && gameState.guesses[i][j]) {
                 tile.classList.add("filled");
-                const letter = guesses[i][j];
-                if (letter && letterHints[letter]) tile.classList.add(letterHints[letter]);
-            } else if (i === currentRow && j < currentGuess.length) {
+                const letter = gameState.guesses[i][j];
+                if (letter && gameState.letterHints[letter]) tile.classList.add(gameState.letterHints[letter]);
+            } else if (i === gameState.currentRow && j < gameState.currentGuess.length) {
                 tile.classList.add("filled");
             }
         }
     }
 }
 
-// Handle Key Press - Modified for "ሰርዝ" and "ገምት"
 function handleKeyPress(key) {
     if (key === "Backspace" || key === "ሰርዝ") {
-        currentGuess.pop();
+        gameState.currentGuess.pop();
         updateGrid();
-        // suggestionArea.innerHTML = ""; // Don't clear suggestions
         resetKeyboard();
     } else if (key === "ENTER" || key === "Enter" || key === "ገምት") {
-        if (currentGuess.length === selectedWordLength) {
+        if (gameState.currentGuess.length === gameState.selectedWordLength) {
             submitGuess();
         }
     } else {
-        // It's a regular letter key
-        displayLetterFamily(key); // Always display family
+        displayLetterFamily(key);
     }
 }
-// Normalize the word *before* comparing - Keep normalization for word list consistency
+
 function normalizeWord(word) {
-    if (!word) return ""; // Handle null/undefined
+    if (!word) return "";
 
     const replacements = {
         "ሰ": "ሰ", "ሠ": "ሰ", "ሱ": "ሱ", "ሡ": "ሱ", "ሲ": "ሲ", "ሢ": "ሲ", "ሳ": "ሳ", "ሣ": "ሳ", "ሴ": "ሴ", "ሤ": "ሴ", "ስ": "ስ", "ሥ": "ስ", "ሶ": "ሶ", "ሦ": "ሶ", "ሷ": "ሷ", "ሧ": "ሷ",
@@ -482,7 +464,7 @@ function normalizeWord(word) {
         "ኄ": "ሄ",
         "ኅ": "ህ",
         "ኆ": "ሆ",
-        "ኧ": "ኧ", // Make sure this is included!
+        "ኧ": "ኧ",
         "ቨ": "ቨ",
         "ቩ": "ቩ",
         "ቪ": "ቪ",
@@ -491,22 +473,22 @@ function normalizeWord(word) {
         "ቭ": "ቭ",
         "ቮ": "ቮ",
         "ቯ": "ቯ",
-          "ጰ": "ጰ",
-          "ጱ": "ጱ",
-          "ጲ": "ጲ",
-          "ጳ": "ጳ",
-          "ጴ": "ጴ",
-          "ጵ": "ጵ",
-          "ጶ": "ጶ",
-          "ጷ": "ጷ",
-          "ኸ": "ኸ",
-          "ኹ": "ኹ",
-          "ኺ": "ኺ",
-          "ኻ": "ኻ",
-          "ኼ": "ኼ",
-          "ኽ": "ኽ",
-          "ኾ": "ኾ",
-          "ዃ": "ዃ",
+        "ጰ": "ጰ",
+        "ጱ": "ጱ",
+        "ጲ": "ጲ",
+        "ጳ": "ጳ",
+        "ጴ": "ጴ",
+        "ጵ": "ጵ",
+        "ጶ": "ጶ",
+        "ጷ": "ጷ",
+        "ኸ": "ኸ",
+        "ኹ": "ኹ",
+        "ኺ": "ኺ",
+        "ኻ": "ኻ",
+        "ኼ": "ኼ",
+        "ኽ": "ኽ",
+        "ኾ": "ኾ",
+        "ዃ": "ዃ",
     };
 
     let normalized = "";
@@ -517,66 +499,67 @@ function normalizeWord(word) {
 }
 
 function submitGuess() {
-    if (currentGuess.length !== selectedWordLength) return;
+    if (gameState.currentGuess.length !== gameState.selectedWordLength) return;
 
-    // Normalize the guess *before* checking if it's a valid word
-    const guessWord = normalizeWord(currentGuess.join(""));
+    const guessWord = normalizeWord(gameState.currentGuess.join(""));
 
-    if (!words[selectedWordLength].includes(guessWord)) {
+    if (!gameState.words[gameState.selectedWordLength].includes(guessWord)) {
         Telegram.WebApp.showAlert("ያልታወቀ ቃል!");
         return;
     }
 
-    guesses.push([...currentGuess]); // Use original word
+    gameState.guesses.push([...gameState.currentGuess]);
     checkGuess();
-    currentRow++;
+    gameState.currentRow++;
 
-    if (guessWord === targetWord) {
-      const today = new Date().toLocaleDateString();
-      messageDisplay.textContent = "እንኳን ደስ አለዎት! በትክክለኛው ቃል ገምተዋል!";
-      localStorage.setItem(`${selectedWordLength}-letter-completed-${today}`, "true"); // Mark as *completed*
-      disableKeyboard();
-      showGameOverButtons();
-    } else if (currentRow === MAX_GUESSES) {
-      const today = new Date().toLocaleDateString();
-      messageDisplay.textContent = `ጨዋታው አልቋል። ትክክለኛው ቃል ${targetWord} ነበር።`;
-      localStorage.setItem(`${selectedWordLength}-letter-completed-${today}`, "true"); // Mark as *completed*
-      disableKeyboard();
-      showGameOverButtons();
+    if (guessWord === gameState.targetWord) {
+        const today = new Date().toLocaleDateString();
+        messageDisplay.textContent = "እንኳን ደስ አለዎት! በትክክለኛው ቃል ገምተዋል!";
+        localStorage.setItem(`${gameState.selectedWordLength}-letter-completed-${today}`, "true");
+        disableKeyboard();
+        showGameOverButtons();
+    } else if (gameState.currentRow === gameState.MAX_GUESSES) {
+        const today = new Date().toLocaleDateString();
+        messageDisplay.textContent = `ጨዋታው አልቋል። ትክክለኛው ቃል ${gameState.targetWord} ነበር።`;
+        localStorage.setItem(`${gameState.selectedWordLength}-letter-completed-${today}`, "true");
+        disableKeyboard();
+        showGameOverButtons();
     } else {
-        currentGuess = [];
+        gameState.currentGuess =;
         updateGrid();
         updateKeyboard();
-        // suggestionArea.innerHTML = "🌼"; // No, keep suggestions until next input
     }
     saveGameState();
 }
 
-function disableKeyboard() { document.querySelectorAll(".key").forEach(key => key.disabled = true); }
+function disableKeyboard() {
+    document.querySelectorAll(".key").forEach(key => key.disabled = true);
+}
 
 function showGameOverButtons() {
     hideElement(hintButton); hideElement(newGameButton);
     showElement(gameOverButton); showElement(document.getElementById("game-over-buttons"));
 }
+
 // The letter checking logic - REVISED for detailed color rules
 function checkGuess() {
-    const guess = guesses[currentRow] || "";
-    const targetLetters = targetWord.split("");
+    const guess = gameState.guesses[gameState.currentRow] || "";
+    const targetLetters = gameState.targetWord.split("");
     const guessLetters = [...guess];
-    const feedback = Array(selectedWordLength).fill(null);
+    const feedback = Array(gameState.selectedWordLength).fill(null);
 
     // 1. Green (Correct - Exact Match)
-    for (let i = 0; i < selectedWordLength; i++) {
+    for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (guessLetters[i] === targetLetters[i]) {
             feedback[i] = "correct";
-            letterHints[guessLetters[i]] = "correct";
+            gameState.letterHints[guessLetters[i]] = "correct";
             targetLetters[i] = null;
             guessLetters[i] = null;
         }
     }
 
     // 2. Blue (Family Letter, Correct Position)
-    for (let i = 0; i < selectedWordLength; i++) {
+    for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (feedback[i]) continue;
         if (!guessLetters[i]) continue;
 
@@ -585,17 +568,16 @@ function checkGuess() {
 
         if (guessBase && targetBase && guessBase === targetBase && guessLetters[i] !== targetLetters[i]) {
             feedback[i] = "blue";
-            if (!letterHints[guessLetters[i]] || letterHints[guessLetters[i]] === "absent") {
-                letterHints[guessLetters[i]] = "blue";
+            if (!gameState.letterHints[guessLetters[i]] || gameState.letterHints[guessLetters[i]] === "absent") {
+                gameState.letterHints[guessLetters[i]] = "blue";
             }
             targetLetters[i] = null;
             guessLetters[i] = null;
         }
     }
 
-
     // 3. Yellow (Present - Exact Letter, Wrong Position)
-    for (let i = 0; i < selectedWordLength; i++) {
+    for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (feedback[i]) continue;
         if (!guessLetters[i]) continue;
 
@@ -603,8 +585,8 @@ function checkGuess() {
         const targetIndex = targetLetters.findIndex(letter => letter === guessLetter);
         if (targetIndex !== -1) {
             feedback[i] = "present";
-            if (!letterHints[guessLetter] || letterHints[guessLetter] === "absent") {
-                letterHints[guessLetter] = "present";
+            if (!gameState.letterHints[guessLetter] || gameState.letterHints[guessLetter] === "absent") {
+                gameState.letterHints[guessLetter] = "present";
             }
             targetLetters[targetIndex] = null;
             guessLetters[i] = null;
@@ -612,7 +594,7 @@ function checkGuess() {
     }
 
     // 4. Purple (Family - Family Letter, Wrong Position)
-    for (let i = 0; i < selectedWordLength; i++) {
+    for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (feedback[i]) continue;
         if (!guessLetters[i]) continue;
 
@@ -622,64 +604,59 @@ function checkGuess() {
         const targetIndex = targetLetters.findIndex(letter => letter && getBaseLetter(letter) === guessBase);
         if (targetIndex !== -1) {
             feedback[i] = "family";
-            if (!letterHints[guessLetters[i]] || letterHints[guessLetters[i]] === "absent") {
-                letterHints[guessLetters[i]] = "family";
+            if (!gameState.letterHints[guessLetters[i]] || gameState.letterHints[guessLetters[i]] === "absent") {
+                gameState.letterHints[guessLetters[i]] = "family";
             }
             targetLetters[targetIndex] = null;
             guessLetters[i] = null;
         }
     }
 
-
     // 5. Gray (Absent)
-    for (let i = 0; i < selectedWordLength; i++) {
+    for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (!feedback[i]) {
             feedback[i] = "absent";
-            letterHints[guess[i]] = "absent";
+            gameState.letterHints[guess[i]] = "absent";
         }
     }
 
     // Apply feedback to grid tiles
-    for (let i = 0; i < selectedWordLength; i++) {
-        const tile = document.getElementById(`tile-${currentRow}-${i}`);
+    for (let i = 0; i < gameState.selectedWordLength; i++) {
+        const tile = document.getElementById(`tile-${gameState.currentRow}-${i}`);
         if (tile && feedback[i]) {
             tile.classList.add(feedback[i]);
         }
     }
-    updateGrid(); // Ensure grid is updated after applying classes
+    updateGrid();
     updateKeyboard();
 }
 
-
 async function loadHintFile() {
-    if (hints === null && !hintFileLoaded) { // Load only once and if not already loaded
-        hintFileLoaded = true; // Mark loading as started
+    if (gameState.hints === null && !gameState.hintFileLoaded) {
+        gameState.hintFileLoaded = true;
         try {
             const hintsResponse = await fetch(config.hintFilePath);
             if (!hintsResponse.ok) throw new Error(`HTTP error: ${hintsResponse.status}`);
-            hints = await hintsResponse.json();
+            gameState.hints = await hintsResponse.json();
         } catch (error) {
             console.error("Error loading hints file:", error);
-            hints = {}; // Ensure hints is at least an empty object to prevent further errors
+            gameState.hints = {};
             setElementText(messageDisplay, "ፍንጭ መረጃን በመጫን ላይ ስህተት ተፈጥሯል።");
         }
     }
 }
 
-
 async function showHint() {
-    await loadHintFile(); // Load hint file if not already loaded
-    Telegram.WebApp.showAlert(targetWord && hints && hints[targetWord] ? hints[targetWord] : "ለዚህ ቃል ፍንጭ የለም።");
+    await loadHintFile();
+    Telegram.WebApp.showAlert(gameState.targetWord && gameState.hints && gameState.hints[gameState.targetWord] ? gameState.hints[gameState.targetWord] : "ለዚህ ቃል ፍንጭ የለም።");
 }
-
 
 function updateKeyboard() {
     document.querySelectorAll(".key").forEach(keyButton => {
         const letter = keyButton.dataset.letter;
-        if (letter && letterHints[letter]) {
-            keyButton.classList.add(letterHints[letter]);
-            // Disable ONLY if absent
-            if (letterHints[letter] === "absent") {
+        if (letter && gameState.letterHints[letter]) {
+            keyButton.classList.add(gameState.letterHints[letter]);
+            if (gameState.letterHints[letter] === "absent") {
                 keyButton.disabled = true;
             }
         }
@@ -687,27 +664,43 @@ function updateKeyboard() {
 }
 
 function shareResults() {
-    let resultText = `ቃላት (${selectedWordLength} ፊደላት) - ${currentRow}/${MAX_GUESSES}\n`;
-    for (let i = 0; i < currentRow; i++) {
+    let resultText = `ቃላት (${gameState.selectedWordLength} ፊደላት) - ${gameState.currentRow}/${gameState.MAX_GUESSES}\n`;
+    for (let i = 0; i < gameState.currentRow; i++) {
         let rowText = "";
-        for (let j = 0; j < selectedWordLength; j++) {
-            const letter = guesses[i][j]; const tile = document.getElementById(`tile-${i}-${j}`);
+        for (let j = 0; j < gameState.selectedWordLength; j++) {
+            const letter = gameState.guesses[i][j];
+            const tile = document.getElementById(`tile-${i}-${j}`);
             rowText += tile && tile.classList.contains("correct") ? "🟩" : tile && tile.classList.contains("present") ? "🟨" : tile && tile.classList.contains("family") ? "🟪" : tile && tile.classList.contains("blue") ? "🟦" : "⬛";
         }
         resultText += rowText + "\n";
     }
     try {
         if (Telegram.WebApp.isVersionAtLeast("6.9")) {
-            Telegram.WebApp.showConfirm(resultText, (confirmed) => { if (confirmed) Telegram.WebApp.close(); });
-        } else { Telegram.WebApp.showAlert("Please update the telegram app"); }
-    } catch (e) { console.error("Error sharing:", e); alert(resultText); }
+            Telegram.WebApp.showConfirm(resultText, (confirmed) => {
+                if (confirmed) Telegram.WebApp.close();
+            });
+        } else {
+            Telegram.WebApp.showAlert("Please update the telegram app");
+        }
+    } catch (e) {
+        console.error("Error sharing:", e);
+        alert(resultText);
+    }
 }
 
 function setupRulesModal() {
-    const modal = document.getElementById("rules-modal"), btn = document.getElementById("rules-button"), span = document.getElementsByClassName("close-button")[0];
-    if (btn) btn.onclick = () => { if (modal) modal.style.display = "block"; };
-    if (span) span.onclick = () => { if (modal) modal.style.display = "none"; };
-    if (modal) window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+    const modal = document.getElementById("rules-modal"),
+        btn = document.getElementById("rules-button"),
+        span = document.getElementsByClassName("close-button")[0];
+    if (btn) btn.onclick = () => {
+        if (modal) modal.style.display = "block";
+    };
+    if (span) span.onclick = () => {
+        if (modal) modal.style.display = "none";
+    };
+    if (modal) window.onclick = (event) => {
+        if (event.target == modal) modal.style.display = "none";
+    };
 }
 
 function calculateAndSetTileSize() {
@@ -718,53 +711,51 @@ function calculateAndSetTileSize() {
     const tileSize4 = (gridWidth - tileSpacing * 3) / 4;
     const tileSize5 = (gridWidth - tileSpacing * 4) / 5;
 
-    let tileSize = selectedWordLength === 3 ? tileSize3 :
-                   selectedWordLength === 4 ? tileSize4 :
-                   tileSize5;
+    let tileSize = gameState.selectedWordLength === 3 ? tileSize3 :
+        gameState.selectedWordLength === 4 ? tileSize4 :
+        tileSize5;
 
     document.querySelectorAll(".tile").forEach(tile => {
         tile.style.width = `${tileSize}px`;
         tile.style.height = `${tileSize}px`;
     });
 }
-//Loading and saving game progress
+
 function saveGameState() {
-    const gameState = {
-        targetWord,
-        selectedWordLength,
-        guesses,
-        currentRow,
-        letterHints, // Save letterHints for keyboard colors
-        date: new Date().toLocaleDateString() //Store Date
+    const gameStateToSave = {
+        targetWord: gameState.targetWord,
+        selectedWordLength: gameState.selectedWordLength,
+        guesses: gameState.guesses,
+        currentRow: gameState.currentRow,
+        letterHints: gameState.letterHints,
+        date: new Date().toLocaleDateString()
     };
-    localStorage.setItem("gameState", JSON.stringify(gameState));
+    localStorage.setItem("gameState", JSON.stringify(gameStateToSave));
 }
 
 function loadGameState() {
     const savedState = localStorage.getItem("gameState");
     if (savedState) {
-        const gameState = JSON.parse(savedState);
-        // Check if the saved game is for today and the selected length
+        const gameStateFromStorage = JSON.parse(savedState);
         const today = new Date().toLocaleDateString();
 
-        // Check for *completed* games, not just played.
-        if (localStorage.getItem(`${gameState.selectedWordLength}-letter-completed-${today}`) === "true") {
-             return false; // Don't load if already completed
+        if (localStorage.getItem(`${gameStateFromStorage.selectedWordLength}-letter-completed-${today}`) === "true") {
+            return false;
         }
 
-        if (gameState.date === today && gameState.selectedWordLength) { // Check for date and selectedWordLength
-            // Load game data
-            targetWord = gameState.targetWord;
-            selectedWordLength = gameState.selectedWordLength;
-            guesses = gameState.guesses;
-            currentRow = gameState.currentRow;
-            letterHints = gameState.letterHints; // Restore letterHints
+        if (gameStateFromStorage.date === today && gameStateFromStorage.selectedWordLength) {
+            gameState.targetWord = gameStateFromStorage.targetWord;
+            gameState.selectedWordLength = gameStateFromStorage.selectedWordLength;
+            gameState.guesses = gameStateFromStorage.guesses;
+            gameState.currentRow = gameStateFromStorage.currentRow;
+            gameState.letterHints = gameStateFromStorage.letterHints;
             return true;
         }
     }
-     localStorage.removeItem("gameState"); // Remove if not the same date
-    return false; // Indicate no relevant game state was found
+    localStorage.removeItem("gameState");
+    return false;
 }
+
 // --- Event Listeners and Initialization ---
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -777,17 +768,13 @@ document.addEventListener("DOMContentLoaded", () => {
             setupRulesModal();
             hideLoadingScreen();
 
-            // Check for saved game state *before* showing length selection
-             if (loadGameState()) {
-                // If game state was loaded, go directly to the game
+            if (loadGameState()) {
                 hideElement(lengthSelection);
-                showElement(document.getElementById("game-container")); // Make sure game container is visible
-                calculateAndSetTileSize();// Ensure tiles are updated
-                 updateGrid();       // Update grid AFTER loading game state
-                updateKeyboard();   // Update keyboard AFTER loading
-
+                showElement(document.getElementById("game-container"));
+                calculateAndSetTileSize();
+                updateGrid();
+                updateKeyboard();
             } else {
-                // No relevant saved state, show length selection
                 showLengthSelection();
             }
 
@@ -797,7 +784,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const shareButton = document.getElementById("share-button");
             if (shareButton) shareButton.addEventListener("click", shareResults);
 
-            calculateAndSetTileSize(); // Call initially
+            calculateAndSetTileSize();
             window.addEventListener("resize", calculateAndSetTileSize);
         } else {
             hideLoadingScreen();
