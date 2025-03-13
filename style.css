@@ -214,4 +214,249 @@ body {
     font-size: 0.9em;
     margin: 0;
     height: 30px;
-     background-
+    background-color: var(--key-bg-color);/*Same as keys*/
+    color: black; /*Same as keys*/
+    transition: background-color 0.1s ease, transform 0.1s ease; /* Feedback transition */
+
+}
+
+.key.empty-button{
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+.key:hover, .combined-button button:hover { /* Hover effect for keys and combined buttons */
+    background-color: var(--key-hover-color);
+}
+
+.key:active, .combined-button button:active { /* Active (pressed) feedback */
+    background-color: var(--key-active-color); /* Darker shade when pressed */
+    transform: scale(0.95); /* Subtle scale down */
+}
+
+
+.key:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --- Suggestion Area --- */
+
+#suggestion-area {
+    background-color: #eee;
+    border: 1px solid var(--border-color);
+    min-height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 5px;
+    width: 95%; /* Match keyboard width */
+    box-sizing: border-box;
+    padding: 2px;
+    border: 1px dashed lightgray; /* Dashed border to distinguish */
+}
+
+#suggestion-placeholder {
+    font-size: 24px;
+}
+
+#suggestion-area .key {
+    background-color: transparent;
+    border: none;
+    margin: 1px;
+    padding: 0;
+    font-size: 1.1em;
+    color: black;
+    border-radius: 0;
+    transition: background-color 0.1s ease, transform 0.1s ease; /* Feedback transition */
+}
+
+#suggestion-area .key:hover {
+    background-color: var(--suggestion-hover-color); /* Subtle hover for suggestion keys */
+}
+
+#suggestion-area .key:active {
+    background-color: var(--suggestion-active-color); /* Subtle active for suggestion keys */
+    transform: scale(0.95);
+}
+
+
+/* --- Buttons --- */
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    margin: 5px;
+}
+
+#new-game-button, #return-to-main-menu-button {
+     display: block;
+    width: 40%;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#return-to-main-menu-button2{
+        display: block;
+    width: 40%;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+/* --- Length Selection --- */
+
+#length-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    height: 100vh;
+    background-color: #808080;
+    padding: 20px;
+    box-sizing: border-box;
+    justify-content: space-between;
+}
+
+/* Length Selection Content Container (for centering buttons) */
+.length-selection-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.length-button {
+    padding: 15px;
+    margin: 5px 0;
+    font-size: 22px;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    color: black;
+}
+
+#length-selection .length-button[data-length="3"] { background-color: green; }
+#length-selection .length-button[data-length="4"] { background-color: yellow; }
+#length-selection .length-button[data-length="5"] { background-color: red; }
+
+.length-button.played {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Rules Button */
+#rules-button {
+    padding: 15px;
+    font-size: 22px;
+    width: auto;
+    max-width: none;
+    align-self: center;
+    background-color: #bb8fce;
+    color: white;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+/* --- Modal Styles --- */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: var(--modal-bg-color);
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid var(--modal-border-color);
+    width: 80%;
+    max-width: 600px;
+     border-radius: 10px;
+
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-button:hover{
+    color: black
+}
+
+.centered-content {
+    text-align: center;
+     margin-top: 0; /* Remove top margin */
+}
+/* Image Styling */
+
+#dog-image {
+  display: block;
+  margin: 0 auto 5px;
+  max-width: 50px;
+}
+
+/* Footer Styling */
+.footer {
+    text-align: center;
+    margin-top: auto; /* Push to bottom */
+    padding-bottom: 10px; /* Add some padding */
+    display: flex;             /* Use flexbox for footer */
+    flex-direction: column;   /* Stack items vertically */
+    align-items: center;      /* Center items horizontally */
+}
+
+.footer #dog-image {
+    margin-bottom: 2px; /* Reduce margin below dog image */
+}
+
+.footer .centered-content {
+    margin-top: 2px;      /* Reduce margin above text */
+    font-size: 0.8em;     /* Reduced font size for footer text */
+}
+
+
+/* Tagline Styling */
+#game-tagline {
+  text-align: center;
+  margin-bottom: 0; /* Remove bottom margin */
+  color: black;
+  font-size: 2em;
+  width: 100%;
+}
+
+/* --- Message Display --- */
+#message {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #333;
+    text-align: center;
+}
+
+
+/* Keyframes for tile spin animation (Y-axis rotation) */
+@keyframes spin-tile {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
