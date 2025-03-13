@@ -36,6 +36,7 @@ body {
     min-height: 100vh;
     min-width: 100vw;
     box-sizing: border-box;
+    font-size: 4vw; /* Dynamic font size for body */
 }
 
 /* --- Loading Screen Styles --- */
@@ -135,7 +136,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 5vw; /* Dynamic font size for tiles */
     font-weight: bold;
     text-transform: uppercase;
     box-sizing: border-box;
@@ -143,7 +144,7 @@ body {
     animation-fill-mode: forwards;
     animation-timing-function: linear;
     background-color: var(--tile-bg-color);
-    transition: background-color 0.3s ease, transform 0.3s ease; /* Added transition */
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 /* Tile Colors */
@@ -221,14 +222,13 @@ body {
     width: 100%;
 }
 
-
 .key {
     flex: 1 0 auto;
     margin: 1px;
     padding: 0;
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    font-size: 0.9em;
+    font-size: 3vw; /* Dynamic font size for keys */
     text-align: center;
     cursor: pointer;
     user-select: none;
@@ -240,7 +240,13 @@ body {
     align-items: center;
     justify-content: center;
     transition: background-color 0.1s ease, transform 0.1s ease;
+    outline: none; /* Remove default outline */
 }
+
+.key:focus {
+    outline: 2px solid blue; /* Example: Adjust as needed */
+}
+
 /*Combined Delete and Enter Key*/
 .combined-button {
   display: flex;
@@ -255,7 +261,7 @@ body {
     font-size: 0.9em;
     margin: 0;
     height: 30px;
-     background-color: var(--key-bg-color);/*Same as keys*/
+        background-color: var(--key-bg-color);/*Same as keys*/
     color: black; /*Same as keys*/
     transition: background-color 0.1s ease, transform 0.1s ease; /* Feedback transition */
 
@@ -339,7 +345,7 @@ button {
 }
 
 #new-game-button, #return-to-main-menu-button {
-     display: block;
+        display: block;
     width: 40%;
     max-width: 200px;
     margin-left: auto;
@@ -431,7 +437,7 @@ button {
     border: 1px solid var(--modal-border-color);
     width: 80%;
     max-width: 600px;
-     border-radius: 10px;
+        border-radius: 10px;
 
 }
 
@@ -448,7 +454,7 @@ button {
 
 .centered-content {
     text-align: center;
-     margin-top: 0; /* Remove top margin */
+        margin-top: 0; /* Remove top margin */
 }
 /* Image Styling */
 
@@ -463,9 +469,9 @@ button {
     text-align: center;
     margin-top: auto; /* Push to bottom */
     padding-bottom: 10px; /* Add some padding */
-    display: flex;             /* Use flexbox for footer */
-    flex-direction: column;   /* Stack items vertically */
-    align-items: center;      /* Center items horizontally */
+    display: flex;                /* Use flexbox for footer */
+    flex-direction: column;    /* Stack items vertically */
+    align-items: center;         /* Center items horizontally */
 }
 
 .footer #dog-image {
@@ -473,8 +479,8 @@ button {
 }
 
 .footer .centered-content {
-    margin-top: 2px;      /* Reduce margin above text */
-    font-size: 0.8em;     /* Reduced font size for footer text */
+    margin-top: 2px;     /* Reduce margin above text */
+    font-size: 0.8em;    /* Reduced font size for footer text */
 }
 
 
