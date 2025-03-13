@@ -1,220 +1,362 @@
-/* --- Global Styles --- */
+/* --- General Styles --- */
+
+/* --- Amharic Font Setup --- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;700&display=swap');
+
 body {
-    font-family: sans-serif; /* Use a generic sans-serif for now */
-    text-align: center;
-    background-color: #f0f0f0; /* Light gray background */
-    color: #333; /* Dark gray text */
+    font-family: 'Noto Sans Ethiopic', sans-serif;
     margin: 0;
     padding: 0;
+    background-color: #cbf0ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-width: 100vw;
+    box-sizing: border-box;
 }
 
-/* --- Game Title --- */
-h1 {
-    font-size: 2.5em;
-    margin-bottom: 0.5em;
+/* --- Loading Screen Styles --- */
+
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #cbf0ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding-top: 1%;
+    padding-bottom: 30%;
+    box-sizing: border-box;
 }
 
-/* --- Instructions Paragraph --- */
-p {
-    margin-bottom: 1em;
+#loading-title-svg {
+    width: 80%;
+    max-width: 500px;
+    height: auto;
+    margin-bottom: 20px;
+    display: block;
+}
+
+/* Corrected Loading Spinner - Circle Removed (if it existed) */
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3; /* Light grey */
+    border-top: 5px solid #3498db; /* Blue */
+    border-radius: 50%;
+    animation: spin-loader 1s linear infinite; /* Renamed loader animation */
+}
+
+@keyframes spin-loader { /* Keyframes for loader animation */
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- Game Container --- */
+
+#game-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+    padding: 10px;
+    background-color: #ddd;
+    box-sizing: border-box;
+    /* border: 2px solid black;  <- REMOVE THIS LINE */
+}
+
+/* --- Title Bar --- */
+
+#title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+    height: auto;
+    min-height: 40px;
+}
+
+#game-title {
+    text-align: center;
+    margin: 0;
+    flex-grow: 1;
+    font-size: 1.8em;
+}
+
+.medium-button{
+    padding: 8px;
+    font-size: 12px;
 }
 
 /* --- Wordle Grid --- */
+
 #wordle-grid {
-    display: grid;
-    /* grid-template-columns: repeat(5, 60px);  This is now set dynamically in JS */
-    grid-gap: 5px;
-    margin: 20px auto;
-    max-width: 400px; /* Limit the width for better layout */
+  display: grid;
+  grid-gap: 8px 3px; /* Increased row gap to 8px, column gap remains 3px */
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  width: auto;
+  max-width: 100%;
+  border: 2px solid black; /* Add outline to grid */
+  padding: 2px; /* Add padding inside the grid outline */
 }
+
+/* --- Row Outlines --- */
+/* No need for .wordle-row outline anymore, grid itself provides structure */
+
 
 .tile {
-    width: 60px; /* Adjust as needed */
-    height: 60px; /* Adjust as needed */
     border: 2px solid #ccc;
     display: flex;
-    justify-content: center;
     align-items: center;
-    font-size: 2em; /* Larger font size for letters */
+    justify-content: center;
+    font-size: 20px;
     font-weight: bold;
-    text-transform: uppercase; /* Ensure consistent case */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    text-transform: uppercase;
+    box-sizing: border-box;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    animation-timing-function: linear;
+    background-color: #e0e0e0; /* Subtle background color for tiles */
 }
 
-/* --- Tile States --- */
-.tile.filled {
-    background-color: #eee;
-}
-
-.tile.correct {
-    background-color: green;
-    color: white;
-    border-color: green;
-}
-
-.tile.present {
-    background-color: yellow;
-    color: black;
-    border-color: yellow;
-}
-
-.tile.absent {
-    background-color: gray;
-    color: white;
-    border-color: gray;
-}
-.tile.family {
-    background-color: purple;
-    color: white;
-    border-color: purple;
-}
-.tile.blue {
-    background-color: blue;
-    color: white;
-    border-color: blue;
-}
+/* Tile Colors */
+.tile.correct { background-color: #6aaa64; color: white; border-color: #6aaa64;  animation-name: spin-tile;}
+.tile.present { background-color: #e6b800; color: white; border-color: #e6b800; animation-name: spin-tile;}
+.tile.family { background-color: #bb8fce; color: white; border-color: #bb8fce; animation-name: spin-tile;}
+.tile.blue { background-color: #a7c7e7; color: white; border-color: #a7c7e7; animation-name: spin-tile;}
+.tile.absent { background-color: #787c7e; color: white; border-color: #787c7e; animation-name: spin-tile;}
+.tile.filled { }
 
 /* --- Keyboard --- */
-#keyboard {
-    margin-top: 20px;
+
+.keyboard-container {
+    width: 95%;
+    max-width: 500px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border: 2px solid black; /* Add outline to keyboard container */
+    padding: 3px; /* Add padding inside keyboard outline */
+    display: flex; /* Use flex to center keyboard content */
+    flex-direction: column; /* Stack rows vertically */
+    align-items: center; /* Center rows horizontally */
 }
+
+#keyboard {
+    width: 100%; /* Keyboard takes full width of container */
+    display: flex; /* Use flexbox to arrange rows */
+    flex-direction: column; /* Stack rows vertically */
+    align-items: center; /* Center rows horizontally */
+}
+
 
 .keyboard-row {
     display: flex;
-    justify-content: center;
-    margin-bottom: 5px; /* Space between rows */
+    justify-content: center; /* Distribute keys evenly */
+    margin-bottom: 2px;
+    width: 100%;
 }
 
 .key {
-    padding: 10px 15px;
-    margin: 2px; /* Space between keys */
+    flex: 1 0 auto;
+    margin: 1px;
+    padding: 0;
     border: 1px solid #ccc;
-    background-color: #eee;
+    border-radius: 4px;
+    font-size: 0.9em;
+    text-align: center;
     cursor: pointer;
-    font-size: 1em;
-    border-radius: 5px; /* Rounded corners */
-    user-select: none; /* Prevent text selection */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    background-color: #fafafa;
+    color: black;
+    height: 30px;
+     display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.1s ease, transform 0.1s ease; /* Feedback transition */
+}
+/*Combined Delete and Enter Key*/
+.combined-button {
+  display: flex;
+  flex: 0 0 calc(50% - 2px);
+  margin: 1px;
+}
+.combined-button button {
+    flex: 1;
+    border: none;
+    border-radius: 4px;
+    padding: 0;
+    font-size: 0.9em;
+    margin: 0;
+    height: 30px;
+     background-color: #fafafa;/*Same as keys*/
+    color: black; /*Same as keys*/
+    transition: background-color 0.1s ease, transform 0.1s ease; /* Feedback transition */
+
 }
 
-.key:hover {
-    background-color: #ddd; /* Slightly darker on hover */
+.key.empty-button{
+    opacity: 0;
+    pointer-events: none;
 }
+
+
+.key:hover, .combined-button button:hover { /* Hover effect for keys and combined buttons */
+    background-color: #96d35f;
+}
+
+.key:active, .combined-button button:active { /* Active (pressed) feedback */
+    background-color: #7bb153; /* Darker shade when pressed */
+    transform: scale(0.95); /* Subtle scale down */
+}
+
+
 .key:disabled {
-    opacity: 0.5; /* Visually indicate disabled keys */
-    cursor: not-allowed; /* Change cursor on disabled keys */
+    opacity: 0.5;
+    cursor: not-allowed;
 }
+
 /* --- Suggestion Area --- */
+
 #suggestion-area {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    min-height: auto;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    margin-top: 10px;
+    align-items: center;
+    margin-bottom: 5px;
+    width: 95%; /* Match keyboard width */
+    box-sizing: border-box;
+    padding: 2px;
+    border: 1px dashed lightgray; /* Dashed border to distinguish */
+}
+
+#suggestion-placeholder {
+    font-size: 24px;
 }
 
 #suggestion-area .key {
-    /* Use the same .key styles for suggestion buttons */
-    margin: 2px; /* Add some margin */
-
+    background-color: transparent;
+    border: none;
+    margin: 1px;
+    padding: 0;
+    font-size: 1.1em;
+    color: black;
+    border-radius: 0;
+    transition: background-color 0.1s ease, transform 0.1s ease; /* Feedback transition */
 }
 
-/* --- Messages --- */
-#message {
-    margin-top: 10px;
-    font-weight: bold;
+#suggestion-area .key:hover {
+    background-color: #d0d0d0; /* Subtle hover for suggestion keys */
 }
+
+#suggestion-area .key:active {
+    background-color: #c0c0c0; /* Subtle active for suggestion keys */
+    transform: scale(0.95);
+}
+
+
 /* --- Buttons --- */
 
-#length-selection {
-  display:flex;
-  justify-content: center;
-  align-items: center;
-
-}
-#length-selection button{
-   margin: 5px;
-}
-
-#new-game-button {
-    margin-top: 20px;
+button {
     padding: 10px 20px;
-    background-color: #4CAF50; /* Green */
-    color: white;
-    border: none;
+    font-size: 16px;
     cursor: pointer;
+    border: none;
     border-radius: 5px;
-    font-size: 1em;
+    background-color: #4CAF50;
+    color: white;
+    margin: 5px;
 }
 
-/* --- Bird Animation (Placeholder Images - REPLACE THESE) --- */
-
-#bird-container {
-    position: relative; /* Needed for absolute positioning within */
-    height: 100px; /* Adjust as needed based on your bird image size */
-    margin-bottom: 20px; /* Space between bird and grid */
+#new-game-button, #return-to-main-menu-button {
+     display: block;
+    width: 40%;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-#bird-container #bird {
-    /* Default (static) bird image */
-    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAjklEQVR4Ae3dwQmDQBBA0T+lE8Zc+AF6gC8kTyJ6gE5hL7CI9Y8HTDqEQP03gQAAAAAAGBrDeWwT1tJREz2U9rDHLAF5iS+EA74I9kL8/h1BfF/q9m7sZJ5Hdg5c1n3bKF4AgAAAACkG9b2PXDn9P6F7h54WdK4APMAAAAASUVORK5CYII=');
-    width: 50px; /* Adjust size as needed */
-    height: 50px; /* Adjust size as needed */
-      position: absolute; /* Position absolutely within the container */
-    left: 0;
-    top: 0;
-    transition: transform 0.5s ease; /* Smooth transition for movement */
+#return-to-main-menu-button2{
+        display: block;
+    width: 40%;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+/* --- Length Selection --- */
 
+#length-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    height: 100vh;
+    background-color: #808080;
+    padding: 20px;
+    box-sizing: border-box;
+    justify-content: space-between;
 }
 
-/* Placeholder for flying bird (you can use a GIF or a sequence of images) */
-.fly-in #bird,
-.fly-out #bird,
-.fly-to-tile #bird {
-     content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAjklEQVR4Ae3dwQmDQBBA0T+lE8Zc+AF6gC8kTyJ6gE5hL7CI9Y8HTDqEQP03gQAAAAAAGBrDeWwT1tJREz2U9rDHLAF5iS+EA74I9kL8/h1BfF/q9m7sZJ5Hdg5c1n3bKF4AgAAAACkG9b2PXDn9P6F7h54WdK4APMAAAAASUVORK5CYII=');
-}
-/* Placeholder Nest Images */
-#nest-3 img {
-    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAEklEQVR4AewaftIAAABlSURBVO3BAQEAAACAkP6v7ggKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgBw4AAZTSZ/UAAAAASUVORK5CYII='); /* Very simple placeholder */
-    width: 40px;
-    height: 30px;
+/* Length Selection Content Container (for centering buttons) */
+.length-selection-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
-#nest-4 img {
-    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAEklEQVR4AewaftIAAABlSURBVO3BAQEAAACAkP6v7ggKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgBw4AAZTSZ/UAAAAASUVORK5CYII='); /* Very simple placeholder */
-    width: 40px;
-     height: 30px;
-
+.length-button {
+    padding: 15px;
+    margin: 5px 0;
+    font-size: 22px;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    color: black;
 }
 
-#nest-5 img {
-    content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAEklEQVR4AewaftIAAABlSURBVO3BAQEAAACAkP6v7ggKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgBw4AAZTSZ/UAAAAASUVORK5CYII='); /* Very simple placeholder */
-     width: 40px;
-    height: 30px;
+#length-selection .length-button[data-length="3"] { background-color: green; }
+#length-selection .length-button[data-length="4"] { background-color: yellow; }
+#length-selection .length-button[data-length="5"] { background-color: red; }
+
+.length-button.played {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
-.bird-caption{
-  text-align:center;
+/* Rules Button */
+#rules-button {
+    padding: 15px;
+    font-size: 22px;
+    width: auto;
+    max-width: none;
+    align-self: center;
+    background-color: #bb8fce;
+    color: white;
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 
-/* Initially hide the nests */
-.nest {
-    display: none; /* Initially hidden */
-    position: absolute; /* Position relative to the bird container */
-}
-/* Show nests on game start/reset */
-#length-selection:not([style*="display: none"]) + #bird-container .nest{
-  display: inline-block;
-  position: static;
-}
+/* --- Modal Styles --- */
 
-/* Basic fly-away animation */
-.fly-away {
-    transform: translateY(-100px) scale(0); /* Move up and shrink */
-    opacity: 0;
-    transition: transform 0.5s ease, opacity 0.5s ease;
-}
-
-/* --- Modal Styles (for rules) --- */
 .modal {
-    display: none; /* Hidden by default */
+    display: none;
     position: fixed;
     z-index: 1;
     left: 0;
@@ -222,7 +364,7 @@ p {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+    background-color: rgba(0,0,0,0.4);
 }
 
 .modal-content {
@@ -231,9 +373,9 @@ p {
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
-    max-width: 600px; /* Limit width on larger screens */
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+     border-radius: 10px;
+
 }
 
 .close-button {
@@ -243,33 +385,63 @@ p {
     font-weight: bold;
     cursor: pointer;
 }
-
-.close-button:hover,
-.close-button:focus {
-    color: black;
-    text-decoration: none;
+.close-button:hover{
+    color: black
 }
 
-/* Styles for the rules content */
-.modal-content h1 {
+.centered-content {
     text-align: center;
-    margin-bottom: 15px;
+     margin-top: 0; /* Remove top margin */
+}
+/* Image Styling */
+
+#dog-image {
+  display: block;
+  margin: 0 auto 5px;
+  max-width: 50px;
 }
 
-.modal-content ol {
-    padding-left: 20px;
+/* Footer Styling */
+.footer {
+    text-align: center;
+    margin-top: auto; /* Push to bottom */
+    padding-bottom: 10px; /* Add some padding */
+    display: flex;             /* Use flexbox for footer */
+    flex-direction: column;   /* Stack items vertically */
+    align-items: center;      /* Center items horizontally */
+}
+
+.footer #dog-image {
+    margin-bottom: 2px; /* Reduce margin below dog image */
+}
+
+.footer .centered-content {
+    margin-top: 2px;      /* Reduce margin above text */
+    font-size: 0.8em;     /* Reduced font size for footer text */
+}
+
+
+/* Tagline Styling */
+#game-tagline {
+  text-align: center;
+  margin-bottom: 0; /* Remove bottom margin */
+  color: black;
+  font-size: 2em;
+  width: 100%;
+}
+
+/* --- Message Display --- */
+#message {
+    margin-top: 10px;
     margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #333;
+    text-align: center;
 }
 
-.modal-content ul {
-    list-style-type: disc;
-    padding-left: 20px;
-    margin-bottom: 10px;
-}
 
-.modal-content li {
-    margin-bottom: 5px;
-}
-.hidden{
-  display:none;
+/* Keyframes for tile spin animation (Y-axis rotation) */
+@keyframes spin-tile {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
 }
