@@ -160,6 +160,39 @@ body {
     transform: scale(1.05); /* Added hover effect */
 }
 
+/* Tile Flip Animation */
+@keyframes flip {
+    0% { transform: rotateX(0deg); }
+    50% { transform: rotateX(90deg); }
+    100% { transform: rotateX(0deg); }
+}
+
+.tile.flip {
+    animation: flip 0.5s ease-in-out;
+}
+
+/* Key Press Animation */
+@keyframes keyPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.key.pressed {
+    animation: keyPress 0.2s ease-in-out;
+}
+
+/* Win/Loss Animation */
+@keyframes winLoss {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.game-over-buttons.animate {
+    animation: winLoss 1s ease-in-out infinite;
+}
+
 /* --- Keyboard --- */
 
 .keyboard-container {
