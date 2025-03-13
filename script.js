@@ -11,7 +11,15 @@ let gameState = {
     letterHints: {},
     currentRow: 0,
     hintFileLoaded: false,
-    isLoading: true, // Added loading state
+    isLoading: true,
+    hintsEnabled: true,
+    soundEnabled: true,
+    gameStats: {
+        gamesPlayed: 0,
+        gamesWon: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+    },
 };
 
 // --- DOM Element References ---
@@ -48,6 +56,18 @@ function setElementText(element, text) { if (element) element.textContent = text
 function showLoadingScreen() { document.getElementById("loading-screen").style.display = "flex"; }
 function hideLoadingScreen() { document.getElementById("loading-screen").style.display = "none"; }
 
+// --- Sound Effects ---
+const keyPressSound = new Audio("sounds/keypress.mp3");
+const correctGuessSound = new Audio("sounds/correct.mp3");
+const gameOverSound = new Audio("sounds/gameover.mp3");
+
+function playSound(sound) {
+    if (gameState.soundEnabled) {
+        sound.currentTime = 0;
+        sound.play();
+    }
+}
+
 // --- Game Setup Functions ---
 async function loadWords() {
     showLoadingScreen();
@@ -58,11 +78,11 @@ async function loadWords() {
             gameState.words[length] = (await response.text()).trim().split("\n").map(word => word.trim());
         });
         await Promise.all(wordListPromises);
-        gameState.isLoading = false; // Set loading to false after loading
+        gameState.isLoading = false;
     } catch (error) {
         console.error("Error loading resources:", error);
         setElementText(messageDisplay, "የቃላት ዝርዝርን በመጫን ላይ ስህተት ተፈጥሯል።");
-        gameState.isLoading = false; // Set loading to false on error
+        gameState.isLoading = false;
         hideLoadingScreen();
         return false;
     }
@@ -82,8 +102,7 @@ function startNewGame() {
         return;
     }
 
-    // Load or initialize game state
-    if (!loadGameState()) { // Try to load, and if it fails, *then* initialize
+    if (!loadGameState()) {
         gameState.targetWord = getRandomWord(gameState.selectedWordLength);
         gameState.targetWord = normalizeWord(gameState.targetWord);
         if (!gameState.targetWord) {
@@ -148,7 +167,7 @@ function createGrid() {
         for (let j = 0; j < gameState.selectedWordLength; j++) {
             const tile = document.createElement("div");
             tile.classList.add("tile");
-            tile.id = `tile-${i}-${j}`;
+            tile.id = `tile-<span class="math-inline">\{i\}\-</span>{j}`;
             grid.appendChild(tile);
         }
     }
@@ -162,7 +181,7 @@ function setupLengthSelection() {
             gameState.selectedWordLength = parseInt(event.target.dataset.length);
             const today = new Date().toLocaleDateString();
 
-            if (localStorage.getItem(`${gameState.selectedWordLength}-letter-completed-${today}`) === "true") {
+            if (localStorage.getItem(`<span class="math-inline">\{gameState\.selectedWordLength\}\-letter\-completed\-</span>{today}`) === "true") {
                 messageDisplay.textContent = `የ ${gameState.selectedWordLength} ፊደል ቃላት ጨዋታ ዛሬ ተጫውተው ጨርሰዋል።`;
                 return;
             }
@@ -184,6 +203,7 @@ function showLengthSelection() {
     showElement(lengthSelection);
 }
 
+
 // --- Amharic Keyboard ---
 const keys = [
     ["ሀ", "ለ", "መ", "ሰ", "ረ", "ሸ", "ቀ", "በ"],
@@ -191,6 +211,7 @@ const keys = [
     ["ዘ", "ዠ", "የ", "ደ", "ጀ", "ገ", "ጠ", "ፀ", "ጰ"],
     ["ሰርዝ", "ጨ", "ፈ", "ቨ", "ፐ", "ገምት"]
 ];
+
 
 function createAmharicKeyboard() {
     keyboard.innerHTML = "";
@@ -299,7 +320,7 @@ function getLetterFamily(letter) {
         ["ገ", "ጉ", "ጊ", "ጋ", "ጌ", "ግ", "ጎ", "ጓ"],
         ["ጠ", "ጡ", "ጢ", "ጣ", "ጤ", "ጥ", "ጦ", "ጧ"],
         ["ጨ", "ጩ", "ጪ", "ጫ", "ጬ", "ጭ", "ጮ", "ጯ"],
-        ["ፈ", "ፉ", "ፊ", "ፋ", "ፌ", "ፍ", "ፎ", "ፏ"],
+        ["ፈ", "ፉ", "ፊ", "ፋ", "ፌ", "ፌ", "ፍ", "ፎ", "ፏ"],
         ["ፐ", "ፑ", "ፒ", "ፓ", "ፔ", "ፕ", "ፖ", "ፗ"],
         ["ኸ", "ኹ", "ኺ", "ኻ", "ኼ", "ኽ", "ኾ", "ዃ"],
         ["ጰ", "ጱ", "ጲ", "ጳ", "ጴ", "ጵ", "ጶ", "ጷ"],
@@ -420,7 +441,7 @@ function addLetterToGuess(letter) {
 function updateGrid() {
     for (let i = 0; i < gameState.MAX_GUESSES; i++) {
         for (let j = 0; j < gameState.selectedWordLength; j++) {
-            const tile = document.getElementById(`tile-${i}-${j}`);
+            const tile = document.getElementById(`tile-<span class="math-inline">\{i\}\-</span>{j}`);
             if (!tile) continue;
             tile.textContent = (i < gameState.guesses.length) ? (gameState.guesses[i][j] || "") : (i === gameState.currentRow && j < gameState.currentGuess.length) ? gameState.currentGuess[j] : "";
             tile.className = "tile";
@@ -436,6 +457,7 @@ function updateGrid() {
 }
 
 function handleKeyPress(key) {
+    playSound(keyPressSound);
     if (key === "Backspace" || key === "ሰርዝ") {
         gameState.currentGuess.pop();
         updateGrid();
@@ -513,19 +535,23 @@ function submitGuess() {
     gameState.currentRow++;
 
     if (guessWord === gameState.targetWord) {
+        playSound(correctGuessSound);
         const today = new Date().toLocaleDateString();
         messageDisplay.textContent = "እንኳን ደስ አለዎት! በትክክለኛው ቃል ገምተዋል!";
-        localStorage.setItem(`${gameState.selectedWordLength}-letter-completed-${today}`, "true");
+        localStorage.setItem(`<span class="math-inline">\{gameState\.selectedWordLength\}\-letter\-completed\-</span>{today}`, "true");
         disableKeyboard();
         showGameOverButtons();
+        updateGameStats(true);
     } else if (gameState.currentRow === gameState.MAX_GUESSES) {
+        playSound(gameOverSound);
         const today = new Date().toLocaleDateString();
         messageDisplay.textContent = `ጨዋታው አልቋል። ትክክለኛው ቃል ${gameState.targetWord} ነበር።`;
-        localStorage.setItem(`${gameState.selectedWordLength}-letter-completed-${today}`, "true");
+        localStorage.setItem(`<span class="math-inline">\{gameState\.selectedWordLength\}\-letter\-completed\-</span>{today}`, "true");
         disableKeyboard();
         showGameOverButtons();
+        updateGameStats(false);
     } else {
-        gameState.currentGuess =;
+        gameState.currentGuess = [];
         updateGrid();
         updateKeyboard();
     }
@@ -541,14 +567,12 @@ function showGameOverButtons() {
     showElement(gameOverButton); showElement(document.getElementById("game-over-buttons"));
 }
 
-// The letter checking logic - REVISED for detailed color rules
 function checkGuess() {
     const guess = gameState.guesses[gameState.currentRow] || "";
     const targetLetters = gameState.targetWord.split("");
     const guessLetters = [...guess];
     const feedback = Array(gameState.selectedWordLength).fill(null);
 
-    // 1. Green (Correct - Exact Match)
     for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (guessLetters[i] === targetLetters[i]) {
             feedback[i] = "correct";
@@ -558,7 +582,6 @@ function checkGuess() {
         }
     }
 
-    // 2. Blue (Family Letter, Correct Position)
     for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (feedback[i]) continue;
         if (!guessLetters[i]) continue;
@@ -576,7 +599,6 @@ function checkGuess() {
         }
     }
 
-    // 3. Yellow (Present - Exact Letter, Wrong Position)
     for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (feedback[i]) continue;
         if (!guessLetters[i]) continue;
@@ -593,7 +615,6 @@ function checkGuess() {
         }
     }
 
-    // 4. Purple (Family - Family Letter, Wrong Position)
     for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (feedback[i]) continue;
         if (!guessLetters[i]) continue;
@@ -612,7 +633,6 @@ function checkGuess() {
         }
     }
 
-    // 5. Gray (Absent)
     for (let i = 0; i < gameState.selectedWordLength; i++) {
         if (!feedback[i]) {
             feedback[i] = "absent";
@@ -620,9 +640,8 @@ function checkGuess() {
         }
     }
 
-    // Apply feedback to grid tiles
     for (let i = 0; i < gameState.selectedWordLength; i++) {
-        const tile = document.getElementById(`tile-${gameState.currentRow}-${i}`);
+        const tile = document.getElementById(`tile-<span class="math-inline">\{gameState\.currentRow\}\-</span>{i}`);
         if (tile && feedback[i]) {
             tile.classList.add(feedback[i]);
         }
@@ -647,6 +666,10 @@ async function loadHintFile() {
 }
 
 async function showHint() {
+    if (!gameState.hintsEnabled) {
+        Telegram.WebApp.showAlert("ፍንጮች ተሰናክለዋል።");
+        return;
+    }
     await loadHintFile();
     Telegram.WebApp.showAlert(gameState.targetWord && gameState.hints && gameState.hints[gameState.targetWord] ? gameState.hints[gameState.targetWord] : "ለዚህ ቃል ፍንጭ የለም።");
 }
@@ -663,8 +686,7 @@ function updateKeyboard() {
     });
 }
 
-function shareResults() {
-    let resultText = `ቃላት (${gameState.selectedWordLength} ፊደላት) - ${gameState.currentRow}/${gameState.MAX_GUESSES}\n`;
+function shareResults() { let resultText = `ቃላት (${gameState.selectedWordLength} ፊደላት) - ${gameState.currentRow}/${gameState.MAX_GUESSES}\n`;
     for (let i = 0; i < gameState.currentRow; i++) {
         let rowText = "";
         for (let j = 0; j < gameState.selectedWordLength; j++) {
@@ -728,7 +750,10 @@ function saveGameState() {
         guesses: gameState.guesses,
         currentRow: gameState.currentRow,
         letterHints: gameState.letterHints,
-        date: new Date().toLocaleDateString()
+        date: new Date().toLocaleDateString(),
+        hintsEnabled: gameState.hintsEnabled,
+        soundEnabled: gameState.soundEnabled,
+        gameStats: gameState.gameStats,
     };
     localStorage.setItem("gameState", JSON.stringify(gameStateToSave));
 }
@@ -749,6 +774,9 @@ function loadGameState() {
             gameState.guesses = gameStateFromStorage.guesses;
             gameState.currentRow = gameStateFromStorage.currentRow;
             gameState.letterHints = gameStateFromStorage.letterHints;
+            gameState.hintsEnabled = gameStateFromStorage.hintsEnabled;
+            gameState.soundEnabled = gameStateFromStorage.soundEnabled;
+            gameState.gameStats = gameStateFromStorage.gameStats;
             return true;
         }
     }
@@ -756,7 +784,83 @@ function loadGameState() {
     return false;
 }
 
-// --- Event Listeners and Initialization ---
+function setupSettingsModal() {
+    const modal = document.getElementById("settings-modal");
+    const btn = document.getElementById("settings-button");
+    const span = document.getElementById("settings-close-button");
+    const hintsToggle = document.getElementById("hints-toggle");
+    const soundToggle = document.getElementById("sound-toggle");
+    const clearDataButton = document.getElementById("clear-data-button");
+
+    hintsToggle.checked = gameState.hintsEnabled;
+    soundToggle.checked = gameState.soundEnabled;
+    updateGameStatsDisplay();
+
+    if (btn) btn.onclick = () => {
+        if (modal) modal.style.display = "block";
+    };
+    if (span) span.onclick = () => {
+        if (modal) modal.style.display = "none";
+    };
+    if (modal) window.onclick = (event) => {
+        if (event.target == modal) modal.style.display = "none";
+    };
+
+    hintsToggle.addEventListener("change", () => {
+        gameState.hintsEnabled = hintsToggle.checked;
+        saveGameState();
+    });
+
+    soundToggle.addEventListener("change", () => {
+        gameState.soundEnabled = soundToggle.checked;
+        saveGameState();
+    });
+
+    clearDataButton.addEventListener("click", () => {
+        if (confirm("የጨዋታ ውሂብዎን ማጽዳት ይፈልጋሉ?")) {
+            clearGameData();
+            modal.style.display = "none";
+        }
+    });
+}
+
+function updateGameStatsDisplay() {
+    const gamesPlayed = document.getElementById("games-played");
+    const gamesWon = document.getElementById("games-won");
+    const winPercentage = document.getElementById("win-percentage");
+    const currentStreak = document.getElementById("current-streak");
+
+    gamesPlayed.textContent = gameState.gameStats.gamesPlayed;
+    gamesWon.textContent = gameState.gameStats.gamesWon;
+    winPercentage.textContent = gameState.gameStats.gamesPlayed > 0 ? `${Math.round((gameState.gameStats.gamesWon / gameState.gameStats.gamesPlayed) * 100)}%` : "0%";
+    currentStreak.textContent = gameState.gameStats.currentStreak;
+}
+
+function clearGameData() {
+    gameState.gameStats = {
+        gamesPlayed: 0,
+        gamesWon: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+    };
+    localStorage.removeItem("gameState");
+    saveGameState();
+    updateGameStatsDisplay();
+    resetGame();
+}
+
+function updateGameStats(won) {
+    gameState.gameStats.gamesPlayed++;
+    if (won) {
+        gameState.gameStats.gamesWon++;
+        gameState.gameStats.currentStreak++;
+        gameState.gameStats.maxStreak = Math.max(gameState.gameStats.maxStreak, gameState.gameStats.currentStreak);
+    } else {
+        gameState.gameStats.currentStreak = 0;
+    }
+    updateGameStatsDisplay();
+    saveGameState();
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     initializeDOMReferences();
@@ -766,6 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
             createAmharicKeyboard();
             setupLengthSelection();
             setupRulesModal();
+            setupSettingsModal();
             hideLoadingScreen();
 
             if (loadGameState()) {
