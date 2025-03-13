@@ -120,14 +120,14 @@ body {
 /* --- Wordle Grid --- */
 
 #wordle-grid {
-  display: grid;
-  grid-gap: 8px 3px;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-  width: auto;
-  max-width: 100%;
-  border: 2px solid var(--grid-border-color);
-  padding: 2px;
+    display: grid;
+    grid-gap: 8px 3px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    width: auto;
+    max-width: 100%;
+    border: 2px solid var(--grid-border-color);
+    padding: 2px;
 }
 
 .tile {
@@ -143,6 +143,7 @@ body {
     animation-fill-mode: forwards;
     animation-timing-function: linear;
     background-color: var(--tile-bg-color);
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Added transition */
 }
 
 /* Tile Colors */
@@ -151,7 +152,13 @@ body {
 .tile.family { background-color: var(--family-color); color: var(--text-color); border-color: var(--family-color); animation-name: spin-tile;}
 .tile.blue { background-color: var(--blue-color); color: var(--text-color); border-color: var(--blue-color); animation-name: spin-tile;}
 .tile.absent { background-color: var(--absent-color); color: var(--text-color); border-color: var(--absent-color); animation-name: spin-tile;}
-.tile.filled { }
+.tile.filled {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Added box shadow */
+}
+
+.tile:hover {
+    transform: scale(1.05); /* Added hover effect */
+}
 
 /* --- Keyboard --- */
 
@@ -180,6 +187,7 @@ body {
     margin-bottom: 2px;
     width: 100%;
 }
+
 
 .key {
     flex: 1 0 auto;
@@ -214,7 +222,7 @@ body {
     font-size: 0.9em;
     margin: 0;
     height: 30px;
-    background-color: var(--key-bg-color);/*Same as keys*/
+     background-color: var(--key-bg-color);/*Same as keys*/
     color: black; /*Same as keys*/
     transition: background-color 0.1s ease, transform 0.1s ease; /* Feedback transition */
 
@@ -228,6 +236,7 @@ body {
 
 .key:hover, .combined-button button:hover { /* Hover effect for keys and combined buttons */
     background-color: var(--key-hover-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Added box shadow on hover */
 }
 
 .key:active, .combined-button button:active { /* Active (pressed) feedback */
@@ -460,3 +469,8 @@ button {
     0% { transform: rotateY(0deg); }
     100% { transform: rotateY(360deg); }
 }
+
+.tile.correct, .tile.present, .tile.family, .tile.blue, .tile.absent{
+        animation-duration: 0.4s;
+        animation-timing-function: ease-in-out;
+    }
