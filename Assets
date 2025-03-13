@@ -1,7 +1,10 @@
  assets/
-    img/
-        bird-static.png
-        bird-flying.gif
-        nest-3.png
-        nest-4.png
-        nest-5.png
+    images/
+        adey.png
+        ቃላት.svg
+        dog.png
+    words/
+        clean_words3.txt
+        clean_words4.txt
+        clean_words5.txt
+        cleaned.json
