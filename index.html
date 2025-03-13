@@ -81,6 +81,35 @@
         </div>
     </div>
 
+    <div id="settings-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" id="settings-close-button">&times;</span>
+        <h2>ቅንብሮች</h2>
+
+        <div class="setting-item">
+            <label for="hints-toggle">ፍንጭ:</label>
+            <input type="checkbox" id="hints-toggle">
+        </div>
+
+        <div class="setting-item">
+            <label for="sound-toggle">ድምፅ:</label>
+            <input type="checkbox" id="sound-toggle">
+        </div>
+
+        <div id="game-stats">
+            <h3>የጨዋታ ስታቲስቲክስ</h3>
+            <p>የተጫወቱ ጨዋታዎች: <span id="games-played">0</span></p>
+            <p>ያሸነፉት ጨዋታዎች: <span id="games-won">0</span></p>
+            <p>የአሸናፊነት መጠን: <span id="win-percentage">0%</span></p>
+            <p>የአሸናፊነት ተከታታይ: <span id="current-streak">0</span></p>
+        </div>
+
+        <button id="clear-data-button">የጨዋታ ውሂብ አጽዳ</button>
+    </div>
+</div>
+
+<button id="settings-button">ቅንብሮች</button>
+
     <script src="script.js"></script>
 </body>
 </html>
