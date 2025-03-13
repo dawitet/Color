@@ -1,88 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ቃላት (Kalat) - Amharic Wordle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ቃላት</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="config.js"></script>
 </head>
 <body>
-    <h1>ቃላት</h1>
-    <p>  በ 6 ሙከራዎች ውስጥ ባለ 3፣ 4 ወይም 5 ፊደል ቃላትን ለመገመት ይሞክሩ።</p>
-
-    <div id="length-selection">
-        <button data-length="3">3 ፊደላት</button>
-        <button data-length="4">4 ፊደላት</button>
-        <button data-length="5">5 ፊደላት</button>
-    </div>
-    <div id="bird-container">
-  <img id="bird" src="" alt="Bird">
-  <div id="nest-3" class="nest" data-length="3">
-        <img src="" alt="Nest with 3 eggs">
-        <div class ="bird-caption">3 ፊደላት</div>
-    </div>
-    <div id="nest-4" class="nest" data-length="4">
-        <img src="" alt="Nest with 4 eggs">
-        <div class ="bird-caption">4 ፊደላት</div>
-    </div>
-    <div id="nest-5" class="nest" data-length="5">
-        <img src="" alt="Nest with 5 eggs">
-        <div class ="bird-caption">5 ፊደላት</div>
-    </div>
-</div>
-    <div id="wordle-grid">
-        <!-- Tiles will be dynamically generated here -->
+    <div id="loading-screen">
+        <object data="images/ቃላት.svg" type="image/svg+xml" id="loading-title-svg"></object>
+        <!-- Corrected Loading Image with 2D Rotation -->
+        <img src="images/adey.png" alt="Loading..." id="loading-spinner" class="loading-spinner">
     </div>
 
-    <div id="keyboard">
-        <!-- Keyboard will be dynamically generated here -->
-    </div>
-<div id="message"></div>
-    <button id="new-game-button" style="display:none">አዲስ ጨዋታ</button>
-    <button id="hint-button">ፍንጭ</button>
-    <button id="rules-button">ህጎች</button>
-    <button id="share-button" style="display:none">አጋራ</button>
+    <div id="game-container" style="display: none;"> <!-- HIDDEN INITIALLY -->
+        <div id ="title-bar">
+            <button id="hint-button" class = "medium-button">ፍንጭ</button>
+            <h1 id="game-title">ቃላት</h1>  <button id="return-to-main-menu-button" class = "medium-button">ወደ ዋናው ማውጫ ለመመለስ</button>
+        </div>
+        <div id = "created-by"></div>
+        <div id = "message"></div>
 
-    <div id="hint-container" style="display: none;">
-      <p>ፍንጭ!</p>
-    </div>
+        <div id="wordle-grid">
+            </div>
 
-     <div id="rules-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">×</span>
-            <h1>የጨዋታው ህግጋት</h1>
-            <p>ቃላትን በስድስት ሙከራዎች ለመገመት ሞክር።</p>
-            <ol>
-                <li>እያንዳንዱ ግምት ትክክለኛ ባለ 3፣ 4 ወይም 5 ፊደል ቃል መሆን አለበት።</li>
-                <li>ግምቱን ለማስገባት አስገባ የሚለውን ቁልፍ ይጫኑ።</li>
-                <li>ከእያንዳንዱ ግምት በኋላ የሰድር ቀለሞች ይቀየራሉ፡</li>
-                   <ul>
-                     <li>አረንጓዴ፡ ፊደሉ በቃሉ ውስጥ እና በትክክለኛው ቦታ ላይ ነው።</li>
-                     <li>ቢጫ፡ ፊደሉ በቃሉ ውስጥ አለ ግን በተሳሳተ ቦታ ላይ ነው።</li>
-                     <li>ግራጫ፡ ፊደሉ በቃሉ ውስጥ የለም።</li>
-                     <li>ሐምራዊ፡ ፊደሉ የቃሉ ቤተሰብ ነው፣ ግን በተሳሳተ ፊደል እና ቦታ ላይ ነው።</li>
-                     <li>ሰማያዊ፡ ፊደሉ በቃሉ ውስጥ አለ፣ ግን በተሳሳተ የፊደል ቤተሰብ ውስጥ ነው።</li>
-                    </ul>
+        <!-- Suggestion Area (INSIDE game-container, below grid, above keyboard) -->
+        <div id="suggestion-area">
+           <span id="suggestion-placeholder">🌼</span>
+        </div>
+        <!-- Container for centering the keyboard -->
+        <div class="keyboard-container">
+            <div id="keyboard" style="display: none;"> <!-- HIDDEN INITIALLY -->
+              </div>
+        </div>
 
-                <li>ፍንጭ ለማግኘት፣ የወፍ ምልክቱን ጠቅ ያድርጉ።</li>
-                <li>መልካም እድል!</li>
-            </ol>
+
+         <div id="game-over-buttons" style="display: none;"> <!-- HIDDEN INITIALLY -->
+            <button id="share-button">ውጤቶችን አጋራ</button>
+             <button id="return-to-main-menu-button2">ወደ ዋናው ማውጫ ለመመለስ</button>
         </div>
     </div>
-<p>የዳዊት ስራ</p>
 
- <script src="script.js"></script>
-    <script>
-        function setThemeClass() {
-            document.documentElement.className = Telegram.WebApp.colorScheme;
-        }
+    <div id="length-selection" style="display: flex;"> <!-- **VISIBLE INITIALLY - CHANGED TO FLEX** -->
+        <p id="game-tagline">የተለያየ ርዝመት ያላቸውን ቃላት በ6 ሙከራ ያግኙ።</p>
+        <div class="length-selection-content">
+            <button class="length-button" data-length="3">3 ፊደላት</button>
+            <button class="length-button" data-length="4">4 ፊደላት</button>
+            <button class="length-button" data-length="5">5 ፊደላት</button>
+            <button id="rules-button" >የጨዋታው ህጎች</button>
+        </div>
+        <div class="footer">
+            <img src="images/dog.png" alt="Dog" id="dog-image">
+            <div class = "centered-content">
+                <div id = "image-placeholder">ቡቺ ስቱዲዮ</div>
+                <p>የዳዊት ስራ</p>
+            </div>
+        </div>
+    </div>
 
-        Telegram.WebApp.onEvent('themeChanged', setThemeClass);
-        setThemeClass();
-        Telegram.WebApp.expand();
-    </script>
+    <div id="rules-modal" class="modal" style="display: none;"> <!-- HIDDEN INITIALLY -->
+        <div class="modal-content">
+            <span class="close-button">×</span>
+            <h2>የቃላት ጨዋታ ህግጋት</h2>
+            <ul>
+                <li>የ 3፣ 4፣ ወይም 5 ፊደል ቃል በ 6 ሙከራዎች ለመገመት ይሞክሩ።</li>
+                <li>እያንዳንዱ ግምት ትክክለኛ የአማርኛ ቃል መሆን አለበት።</li>
+                <li>ከገመቱ በኋላ፣ የፊደሎቹ ቀለም ይቀየራል፡</li>
+                <ul>
+                    <li><span class="correct-color">አረንጓዴ</span>፡ ፊደሉ ትክክለኛ ሆኖ በትክክለኛው ቦታ ላይ ነው።</li>
+                    <li><span class="present-color">ቢጫ</span>፡ ፊደሉ በቃሉ ውስጥ አለ፣ ግን በተሳሳተ ቦታ ላይ ነው።</li>
+                    <li><span class="family-color">ሐምራዊ</span>፡ ፊደሉ የቃሉ ቤተሰብ ውስጥ አለ።</li>
+                    <li><span class="blue-color">ሰማያዊ</span>፡ ፊደሉ ቃሉ ከሚገኝበት ቤተሰብ ጋር ይገኛል።</li>
+                    <li><span class="absent-color">ግራጫ</span>፡ ፊደሉ በቃሉ ውስጥ የለም።</li>
+                </ul>
+                <li>መልካም እድል!</li>
+            </ul>
+            <p>የዳዊት ስራ</p>
+        </div>
+    </div>
 
+    <script src="script.js"></script>
 </body>
 </html>
